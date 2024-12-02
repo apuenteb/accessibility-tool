@@ -30,14 +30,14 @@
 
       // Define highlight style (white)
       const highlightStyle = {
-        color: '#ffffff', // White color
-        weight: 3,        // Increase thickness for better visibility
+        color: 'green', // White color
+        weight: 5,        // Increased thickness for better visibility
         opacity: 1,
       };
 
       // Define default style
       const defaultStyle = {
-        color: '#3182bd', // Default blue
+        color: '#ffffff', // Default blue #3182bd
         weight: 2,
         opacity: 0.8,
       };
@@ -49,12 +49,14 @@
           const geojsonLayer = L.geoJson(geojsonData, {
             style: defaultStyle,
             onEachFeature: (feature, layer) => {
+              // Add hover effect
               layer.on('mouseover', () => {
                 layer.setStyle(highlightStyle); // Apply white highlight
               });
               layer.on('mouseout', () => {
                 geojsonLayer.resetStyle(layer); // Reapply default style
               });
+
               // Tooltip on hover
               layer.bindTooltip(
                 `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
@@ -70,3 +72,4 @@
     </script>
   </body>
 </html>
+
