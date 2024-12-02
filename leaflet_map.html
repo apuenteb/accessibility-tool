@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Leaflet Hover Example</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <style>
+      #map {
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+      }
+      /* Remove black outline from Leaflet map */
+      path.leaflet-interactive:focus {
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      const map = L.map('map').setView([43.3, -2.0], 11);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+      }).addTo(map);
+
+      // GeoJSON data
+      const geojsonData = {{ geojson_data }};
+
+      // Define hover style
+      const highlightStyle = {
+        color: 'red',
+        weight: 3,
+        opacity: 1,
+      };
+
+      const defaultStyle = {
+        color: '#3182bd',
+        weight: 2,
+        opacity: 0.8,
+      };
+
+      // Add GeoJSON layer
+      const geojsonLayer = L.geoJson(geojsonData, {
+        style: defaultStyle,
+        onEachFeature: (feature, layer) => {
+          layer.on('mouseover', () => {
+            layer.setStyle(highlightStyle);
+          });
+          layer.on('mouseout', () => {
+            geojsonLayer.resetStyle(layer);
+          });
+          // Bind a tooltip to show on hover
+          layer.bindTooltip(
+            `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
+            {
+              permanent: false, // Tooltip disappears when mouse moves away
+              direction: 'top',
+            }
+          );
+        },
+      }).addTo(map);
+    </script>
+  </body>
+</html>
