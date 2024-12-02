@@ -1,6 +1,9 @@
 import dash
 from dash import dcc, html, Input, Output
 from flask import send_file
+import pandas as pd  # Add this line
+import json
+import plotly.express as px
 
 sociodemographic_files = {
     "mean_age": "path_to_mean_age.csv",
@@ -78,6 +81,47 @@ app.layout = html.Div(
         ),
     ]
 )
+
+# Callback to update the map based on dropdown selection
+@app.callback(
+    Output("map-graph", "figure"),
+    Input("demographic-dropdown", "value"),
+)
+def update_map(selected_data):
+    if not selected_data:
+        # Default placeholder if no option is selected
+        return px.choropleth_mapbox(
+            pd.DataFrame({"geo_id": [], "value": []}),
+            geojson=geojson,
+            locations="geo_id",
+            color="value",
+            title="Select a demographic variable to view data.",
+            height=600,
+        ).update_layout(mapbox_style="carto-positron")
+
+    # Load data for the selected option
+    file_path = data_files[selected_data]
+    df = pd.read_csv(file_path)  # Replace with your actual data loading logic
+
+    # Ensure your dataset contains `geo_id` (or equivalent) matching the GeoJSON
+    if "geo_id" not in df or "value" not in df:
+        raise ValueError(f"Data for {selected_data} must include 'geo_id' and 'value' columns.")
+
+    # Create a choropleth map
+    fig = px.choropleth_mapbox(
+        df,
+        geojson=geojson,
+        locations="geo_id",  # Match with GeoJSON feature id
+        color="value",  # The column to represent
+        color_continuous_scale="Viridis",  # Customize the color scale
+        title=f"Demographic Data: {selected_data.replace('_', ' ').title()}",
+        mapbox_style="carto-positron",
+        hover_name="geo_id",  # Replace with a column for hover information
+        center={"lat": 40, "lon": -3},  # Center the map (adjust lat/lon)
+        zoom=6,  # Adjust the zoom level
+    )
+    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    return fig
 
 if __name__ == '__main__':
     app.run_server(debug=False)
