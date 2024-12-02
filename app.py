@@ -28,8 +28,8 @@ app.layout = html.Div(
             id="sidebar",
             style={
                 "position": "absolute",
-                "top": "20px",
-                "left": "20px",
+                "top": "10px",
+                "left": "10px",
                 "width": "300px",
                 "backgroundColor": "rgba(255, 255, 255, 0.9)",
                 "padding": "15px",
@@ -49,7 +49,7 @@ app.layout = html.Div(
                         {"label": "Total Population", "value": "total_population"},
                         {"label": "Housing Quality", "value": "housing_quality"}
                     ],
-                    placeholder="Select a demographic variable",
+                    placeholder="Select a demographic?????",
                     multi=False,
                     style={"width": "100%"},
                 ),
