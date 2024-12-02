@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Data</title>
+    <title>Leaflet Hover Example</title>
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
@@ -13,7 +13,6 @@
         width: 100vw;
         margin: 0;
       }
-      /* Remove black outline from Leaflet map */
       path.leaflet-interactive:focus {
         outline: none;
       }
@@ -28,47 +27,55 @@
         maxZoom: 19,
       }).addTo(map);
 
-      // Define highlight style (white)
-      const highlightStyle = {
-        color: '#2b5775', // White color
-        weight: 3,        // Increase thickness for better visibility
-        opacity: 1,
+      let geojsonLayer;
+
+      const updateMap = (url) => {
+        fetch(url)
+          .then(response => response.json())
+          .then(geojsonData => {
+            if (geojsonLayer) map.removeLayer(geojsonLayer);
+
+            geojsonLayer = L.geoJson(geojsonData, {
+              style: (feature) => ({
+                color: feature.properties.color || '#3182bd',
+                weight: 2,
+                opacity: 0.8,
+              }),
+              onEachFeature: (feature, layer) => {
+                layer.on('mouseover', () => {
+                  layer.setStyle({
+                    color: '#2b5775',
+                    weight: 3,
+                    opacity: 1,
+                  });
+                });
+                layer.on('mouseout', () => {
+                  geojsonLayer.resetStyle(layer);
+                });
+                layer.bindTooltip(
+                  `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
+                  {
+                    permanent: false,
+                    direction: 'top',
+                  }
+                );
+              },
+            }).addTo(map);
+          });
       };
 
-      // Define default style
-      const defaultStyle = {
-        color: '#3182bd', // Default blue
-        weight: 2,
-        opacity: 0.8,
-      };
+      // Initial GeoJSON load
+      updateMap('/geojson');
 
-      // Fetch GeoJSON data dynamically
-      fetch('/geojson')
-        .then(response => response.json())
-        .then(geojsonData => {
-          const geojsonLayer = L.geoJson(geojsonData, {
-            style: defaultStyle,
-            onEachFeature: (feature, layer) => {
-              layer.on('mouseover', () => {
-                layer.setStyle(highlightStyle); // Apply white highlight
-              });
-              layer.on('mouseout', () => {
-                geojsonLayer.resetStyle(layer); // Reapply default style
-              });
-              // Tooltip on hover
-              layer.bindTooltip(
-                `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
-                {
-                  permanent: false,
-                  direction: 'top',
-                }
-              );
-            },
-          }).addTo(map);
-        })
-        .catch(error => console.error('Error loading GeoJSON:', error));
+      // Listen for updates from Dash
+      window.addEventListener("message", (event) => {
+        if (event.data.action === "updateMap") {
+          updateMap(`/styled_geojson/${event.data.selectedData}`);
+        }
+      });
     </script>
   </body>
 </html>
+
 
 
