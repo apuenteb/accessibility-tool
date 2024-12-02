@@ -123,9 +123,9 @@ def update_map_overlay(selected_data):
     # Create a choropleth map
     fig = px.choropleth_mapbox(
         df,
-        geojson=geojson,
+        geojson="/geojson",
         locations="geo_id",  # Matches GeoJSON feature ID
-        color="value",  # Column to color by
+        color=df['Total'],  # Column to color by
         color_continuous_scale="Viridis",
         title=f"Demographic Data: {selected_data.replace('_', ' ').title()}",
         mapbox_style="carto-positron",
