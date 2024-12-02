@@ -19,7 +19,7 @@ sociodemographic_files = {
 app = dash.Dash(__name__)
 
 # Serve the HTML template directly
-@app.server.route('/leaflet_map')
+@app.server.route('leaflet_map')
 def serve_leaflet_map():
     return send_file('leaflet_map.html')
 
