@@ -97,46 +97,48 @@ app.layout = html.Div(
     ],
 )
 
-# Callback to display demographic data on the map
+# Callback to update the map based on dropdown selection
 @app.callback(
-    Output("map-overlay", "children"),
-    Output("map-overlay", "style"),
+    Output("map-graph", "figure"),
     Input("demographic-dropdown", "value"),
 )
-def update_map_overlay(selected_data):
+def update_map(selected_data):
     if not selected_data:
-        return None, {"display": "none"}
+        # Default placeholder if no option is selected
+        return px.choropleth_mapbox(
+            pd.DataFrame({"geo_id": [], "value": []}),
+            geojson="/geojson",  # Reference to GeoJSON file via Flask route
+            locations="geo_id",  # Match GeoJSON feature id
+            color="value",  # The column to color by
+            title="Select a demographic variable to view data.",
+            height=600,
+        ).update_layout(mapbox_style="carto-positron")
 
-    # Get the file path for the selected data
+    # Load data for the selected option
     file_path = sociodemographic_files[selected_data]
-
-    # Load data (CSV or GeoJSON)
-    if file_path.endswith(".geojson"):
-        df = gpd.read_file(file_path)
-    else:
-        df = pd.read_csv(file_path)
-
-    # Ensure the necessary columns are present
-    if "geo_id" not in df.columns or "value" not in df.columns:
-        return html.Div(f"Invalid data format for {selected_data}."), {"display": "none"}
+    df = pd.read_csv(file_path)  # Load your data
+    
+    # Ensure your dataset contains 'geo_id' (or equivalent) matching the GeoJSON
+    if "geo_id" not in df or "value" not in df:
+        raise ValueError(f"Data for {selected_data} must include 'geo_id' and 'value' columns.")
 
     # Create a choropleth map
     fig = px.choropleth_mapbox(
         df,
-        geojson="/geojson",
-        locations="geo_id",  # Matches GeoJSON feature ID
-        color=df['Total'],  # Column to color by
-        color_continuous_scale="Viridis",
+        geojson="/geojson",  # Ensure this is a valid path to your GeoJSON file
+        locations=" CUSEC",  # Column to match GeoJSON feature ID
+        color=df["Total"],  # The column to color by (ensure this exists in the DataFrame)
+        color_continuous_scale="Viridis",  # Customize the color scale
         title=f"Demographic Data: {selected_data.replace('_', ' ').title()}",
         mapbox_style="carto-positron",
-        hover_name="geo_id",
-        center={"lat": 40, "lon": -3},  # Adjust as needed
-        zoom=6,
+        hover_name="CUSEC",  # Optional: Replace with a meaningful column for hover
+        center={"lat": 40, "lon": -3},  # Center map as needed
+        zoom=6,  # Adjust the zoom level
     )
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 
-    # Display the graph as an overlay
-    return dcc.Graph(figure=fig), {"position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "zIndex": 2}
+    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    return fig
+
 
 # Run the app
 if __name__ == '__main__':
