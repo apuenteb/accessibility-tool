@@ -3,6 +3,7 @@ from dash import dcc, html, Input, Output
 from flask import send_file
 import geopandas as gpd
 import json
+from dash.exceptions import PreventUpdate
 
 # Load GeoJSON data and prepare demographic options
 sections = gpd.read_file('aggregated_buildings_multipolygons_sections.geojson')
