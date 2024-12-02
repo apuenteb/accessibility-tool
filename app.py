@@ -19,14 +19,14 @@ sociodemographic_files = {
 app = dash.Dash(__name__)
 
 # Serve the HTML template directly
-@app.server.route('leaflet_map')
+@app.server.route('/assets/leaflet_map')
 def serve_leaflet_map():
-    return send_file('leaflet_map.html')
+    return send_file('assets/leaflet_map.html')
 
 # Serve the GeoJSON file
 @app.server.route('/geojson')
 def serve_geojson():
-    return send_file('aggregated_buildings_multipolygons_sections.geojson')
+    return send_file('data/aggregated_buildings_multipolygons_sections.geojson')
 
 # Layout with sidebar and map
 app.layout = html.Div(
