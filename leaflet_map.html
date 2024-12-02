@@ -28,42 +28,45 @@
         maxZoom: 19,
       }).addTo(map);
 
-      // GeoJSON data
-      const geojsonData = {{ geojson_data }};
-
-      // Define hover style
+      // Define highlight style (white)
       const highlightStyle = {
-        color: 'white',
-        weight: 3,
+        color: '#ffffff', // White color
+        weight: 3,        // Increase thickness for better visibility
         opacity: 1,
       };
 
+      // Define default style
       const defaultStyle = {
-        color: '#3182bd',
+        color: '#3182bd', // Default blue
         weight: 2,
         opacity: 0.8,
       };
 
-      // Add GeoJSON layer
-      const geojsonLayer = L.geoJson(geojsonData, {
-        style: defaultStyle,
-        onEachFeature: (feature, layer) => {
-          layer.on('mouseover', () => {
-            layer.setStyle(highlightStyle);
-          });
-          layer.on('mouseout', () => {
-            geojsonLayer.resetStyle(layer);
-          });
-          // Bind a tooltip to show on hover
-          layer.bindTooltip(
-            `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
-            {
-              permanent: false, // Tooltip disappears when mouse moves away
-              direction: 'top',
-            }
-          );
-        },
-      }).addTo(map);
+      // Load GeoJSON data from an external file
+      fetch('aggregated_buildings_multipolygons_sections.geojson')
+        .then(response => response.json())
+        .then(geojsonData => {
+          const geojsonLayer = L.geoJson(geojsonData, {
+            style: defaultStyle,
+            onEachFeature: (feature, layer) => {
+              layer.on('mouseover', () => {
+                layer.setStyle(highlightStyle); // Apply white highlight
+              });
+              layer.on('mouseout', () => {
+                geojsonLayer.resetStyle(layer); // Reapply default style
+              });
+              // Tooltip on hover
+              layer.bindTooltip(
+                `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
+                {
+                  permanent: false,
+                  direction: 'top',
+                }
+              );
+            },
+          }).addTo(map);
+        })
+        .catch(error => console.error('Error loading GeoJSON:', error));
     </script>
   </body>
 </html>
