@@ -43,7 +43,7 @@
       };
 
       // Load GeoJSON data from an external file
-      fetch('path/to/your/file.geojson')
+      fetch('aggregated_buildings_multipolygons_sections.geojson')
         .then(response => response.json())
         .then(geojsonData => {
           const geojsonLayer = L.geoJson(geojsonData, {
