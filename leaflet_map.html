@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Leaflet Hover Example</title>
+    <title>Data</title>
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
@@ -30,8 +30,8 @@
 
       // Define highlight style (white)
       const highlightStyle = {
-        color: '#9e7373', // White color
-        weight: 5,        // Increased thickness for better visibility
+        color: '#ffffff', // White color
+        weight: 3,        // Increase thickness for better visibility
         opacity: 1,
       };
 
@@ -42,21 +42,19 @@
         opacity: 0.8,
       };
 
-      // Load GeoJSON data from an external file
-      fetch('aggregated_buildings_multipolygons_sections.geojson')
+      // Fetch GeoJSON data dynamically
+      fetch('/geojson')
         .then(response => response.json())
         .then(geojsonData => {
           const geojsonLayer = L.geoJson(geojsonData, {
             style: defaultStyle,
             onEachFeature: (feature, layer) => {
-              // Add hover effect
               layer.on('mouseover', () => {
                 layer.setStyle(highlightStyle); // Apply white highlight
               });
               layer.on('mouseout', () => {
                 geojsonLayer.resetStyle(layer); // Reapply default style
               });
-
               // Tooltip on hover
               layer.bindTooltip(
                 `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
@@ -72,4 +70,5 @@
     </script>
   </body>
 </html>
+
 
