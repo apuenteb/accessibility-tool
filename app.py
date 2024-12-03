@@ -139,7 +139,6 @@ def update_map(selected_data):
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
     return fig
 
-
 # Run the app
 if __name__ == '__main__':
     app.run_server(debug=False)
