@@ -1,94 +1,165 @@
 import dash
-from dash import html, dcc
-import dash_leaflet as dl
-from dash.dependencies import Input, Output
+from dash import dcc, html, Input, Output
+from flask import send_file, jsonify
+import pandas as pd
+import geopandas as gpd
+import json
 
-# Initialize the Dash app
+# File paths for demographic data
+sociodemographic_files = {
+    "mean_age": "path_to_mean_age.csv",
+    "average_income": "path_to_average_income.csv",
+    "total_population": "path_to_total_population.csv",
+    "female_population": "data/sections_gipuzkoa_demographic_women.geojson",
+    "male_population": "path_to_male_population.csv",
+    "population_origin": "path_to_population_origin.csv",
+    "population_age": "path_to_population_age.csv",
+}
+
+# Load the GeoJSON file
+geojson_path = "data/aggregated_buildings_multipolygons_sections.geojson"
+gdf = gpd.read_file(geojson_path)
+
+# Dash app setup
 app = dash.Dash(__name__)
+server = app.server
 
-# Layout of the app
-app.layout = html.Div([
-    html.H1("GeoJSON Example with Dash"),
-    
-    # Dropdown to choose an option (using dcc.Dropdown instead of dash_leaflet.Dropdown)
-    html.Label("Choose an Option:"),
-    html.Div([
-        dcc.Dropdown(  # Use dcc.Dropdown here
-            id='option-dropdown',
-            options=[
-                {'label': 'Option 1', 'value': 'option1'},
-                {'label': 'Option 2', 'value': 'option2'}
+# Serve the GeoJSON file dynamically
+@app.server.route('/geojson')
+def serve_geojson():
+    return jsonify(json.loads(gdf.to_json()))
+
+# Layout with sidebar and map
+app.layout = html.Div(
+    style={"position": "relative", "height": "100vh"},
+    children=[
+        # Sidebar
+        html.Div(
+            id="sidebar",
+            style={
+                "position": "absolute",
+                "top": "20px",
+                "left": "20px",
+                "width": "300px",
+                "backgroundColor": "rgba(255, 255, 255, 0.9)",
+                "padding": "15px",
+                "boxShadow": "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                "zIndex": 1000,
+                "borderRadius": "8px",
+            },
+            children=[
+                html.H3("Demographic Data", style={"marginTop": "0", "fontSize": "18px"}),
+
+                # Dropdown for demographic data selection
+                dcc.Dropdown(
+                    id="demographic-dropdown",
+                    options=[
+                        {"label": "Mean Age", "value": "mean_age"},
+                        {"label": "Average Income", "value": "average_income"},
+                        {"label": "Total Population", "value": "total_population"},
+                        {"label": "Female Population", "value": "female_population"},
+                        {"label": "Male Population", "value": "male_population"},
+                        {"label": "Population by Origin", "value": "population_origin"},
+                        {"label": "Population by Age Groups", "value": "population_age"},
+                    ],
+                    placeholder="Select a demographic variable",
+                    multi=False,
+                    style={"width": "100%"},
+                ),
             ],
-            value='option1'  # Default value
-        )
-    ], style={'width': '300px', 'margin': '10px'}),
-    
-    # Map component with a TileLayer for base map and centered view
-    dl.Map(
-        [ 
-            dl.TileLayer(url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", 
-                         attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"),
-            dl.GeoJSON(id='geojson')  # GeoJSON layer for our feature, with proper ID
-        ], 
-        id="map", 
-        style={'width': '100%', 'height': '500px'}, 
-        center=[43.35, -2.05],  # Set the center of the map
-        zoom=13  # Set the zoom level
-    )
-])
+        ),
 
-# Callback to update GeoJSON data, style and overlay
-@app.callback(
-    [Output('geojson', 'data'), 
-     Output('geojson', 'style_function'),
-     Output('map', 'children')],
-    [Input('option-dropdown', 'value')]  # Trigger when dropdown changes
+        # Map container
+        html.Div(
+            id="map-container",
+            style={
+                "position": "absolute",
+                "top": "0",
+                "left": "0",
+                "right": "0",
+                "bottom": "0",
+                "zIndex": 1,
+            },
+            children=[
+                html.Iframe(
+                    id="leaflet-map",
+                    srcDoc="",  # This will be updated dynamically
+                    style={"height": "100%", "width": "100%", "border": "none"},
+                ),
+            ],
+        ),
+    ],
 )
-def update_map(option):
-    # Define GeoJSON data
-    geojson_data = {
-        "type": "FeatureCollection",
-        "features": [
-            {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [-2.05, 43.35]
-                },
-                "properties": {
-                    "CUSEC": "654321",
-                    "Municipio": "Another Municipio"
-                }
-            }
-        ]
-    }
 
-    # Style dictionary instead of function
-    geojson_style = {
-        'fillColor': 'blue',
-        'weight': 1,
-        'opacity': 1,
-        'color': 'white',
-        'dashArray': '3',
-        'fillOpacity': 0.6
-    }
+@app.callback(
+    Output("leaflet-map", "srcDoc"),
+    Input("demographic-dropdown", "value"),
+)
+def update_leaflet_map(selected_data):
+    if not selected_data:
+        # Default empty map
+        return """
+            <html>
+            <head>
+                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+                <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+            </head>
+            <body>
+                <div id="map" style="height: 100%; width: 100%;"></div>
+                <script>
+                    var map = L.map('map').setView([43.3, -1.9], 8);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                </script>
+            </body>
+            </html>
+        """
 
-    # Create a square overlay, color changes based on dropdown option
-    if option == 'option1':
-        square_color = 'blue'
-    elif option == 'option2':
-        square_color = 'pink'
+    # Load the selected data
+    if selected_data in sociodemographic_files:
+        if selected_data.endswith(".geojson"):
+            data_gdf = gpd.read_file(sociodemographic_files[selected_data])
+        else:
+            data_df = pd.read_csv(sociodemographic_files[selected_data])
+            data_gdf = gdf.merge(data_df, left_on="CUSEC", right_on="geo_id")
 
-    # Define the overlay (rectangle) bounds
-    overlay = dl.Rectangle(
-        bounds=[[[43.33, -2.08], [43.37, -2.02]]],  # Coordinates for the square's bounds
-        color=square_color,  # Color based on selected option
-        weight=3,
-        opacity=0.6
-    )
+        # Convert to GeoJSON
+        data_geojson = data_gdf.to_json()
 
-    # Return the updated GeoJSON data, style, and the overlay
-    return geojson_data, geojson_style, [overlay]  # Ensure the overlays are passed as a list
+        # Generate the Leaflet map with choropleth
+        leaflet_map = f"""
+        <html>
+        <head>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+            <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+        </head>
+        <body>
+            <div id="map" style="height: 100%; width: 100%;"></div>
+            <script>
+                var map = L.map('map').setView([43.3, -1.9], 8);
+                L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png').addTo(map);
+                
+                var geojsonLayer = L.geoJSON({data_geojson}, {{
+                    style: function (feature) {{
+                        var value = feature.properties.value;  // Adjust for your property
+                        var color = value > 100 ? 'blue' : 
+                                    value > 50 ? 'green' : 
+                                    'red';  // Adjust color logic
+                        return {{color: color, weight: 1}};
+                    }},
+                    onEachFeature: function (feature, layer) {{
+                        layer.bindPopup("Value: " + feature.properties.value);
+                    }}
+                }}).addTo(map);
+            </script>
+        </body>
+        </html>
+        """
+        return leaflet_map
 
+    return "Invalid selection."
+
+
+# Run the app
 if __name__ == '__main__':
     app.run_server(debug=True)
+
