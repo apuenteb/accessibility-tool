@@ -97,48 +97,6 @@ app.layout = html.Div(
     ],
 )
 
-# Callback to update the map based on dropdown selection
-@app.callback(
-    Output("map-graph", "figure"),
-    Input("demographic-dropdown", "value"),
-)
-def update_map(selected_data):
-    if not selected_data:
-        # Default placeholder if no option is selected
-        return px.choropleth_mapbox(
-            pd.DataFrame({"geo_id": [], "value": []}),
-            geojson="/geojson",  # Reference to GeoJSON file via Flask route
-            locations="geo_id",  # Match GeoJSON feature id
-            color="value",  # The column to color by
-            title="Select a demographic variable to view data.",
-            height=600,
-        ).update_layout(mapbox_style="carto-positron")
-
-    # Load data for the selected option
-    file_path = sociodemographic_files[selected_data]
-    df = pd.read_csv(file_path)  # Load your data
-    
-    # Ensure your dataset contains 'geo_id' (or equivalent) matching the GeoJSON
-    if "geo_id" not in df or "value" not in df:
-        raise ValueError(f"Data for {selected_data} must include 'geo_id' and 'value' columns.")
-
-    # Create a choropleth map
-    fig = px.choropleth_mapbox(
-        df,
-        geojson="/geojson",  # Ensure this is a valid path to your GeoJSON file
-        locations=" CUSEC",  # Column to match GeoJSON feature ID
-        color=df["Total"],  # The column to color by (ensure this exists in the DataFrame)
-        color_continuous_scale="Viridis",  # Customize the color scale
-        title=f"Demographic Data: {selected_data.replace('_', ' ').title()}",
-        mapbox_style="carto-positron",
-        hover_name="CUSEC",  # Optional: Replace with a meaningful column for hover
-        center={"lat": 40, "lon": -3},  # Center map as needed
-        zoom=6,  # Adjust the zoom level
-    )
-
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-    return fig
-
 # Run the app
 if __name__ == '__main__':
     app.run_server(debug=False)

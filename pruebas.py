@@ -1,165 +1,103 @@
 import dash
-from dash import dcc, html, Input, Output
-from flask import send_file, jsonify
-import pandas as pd
-import geopandas as gpd
-import json
+from dash import html, Output, Input
+from pathlib import Path
+from flask import send_file
 
-# File paths for demographic data
-sociodemographic_files = {
-    "mean_age": "path_to_mean_age.csv",
-    "average_income": "path_to_average_income.csv",
-    "total_population": "path_to_total_population.csv",
-    "female_population": "data/sections_gipuzkoa_demographic_women.geojson",
-    "male_population": "path_to_male_population.csv",
-    "population_origin": "path_to_population_origin.csv",
-    "population_age": "path_to_population_age.csv",
-}
-
-# Load the GeoJSON file
-geojson_path = "data/aggregated_buildings_multipolygons_sections.geojson"
-gdf = gpd.read_file(geojson_path)
-
-# Dash app setup
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, suppress_callback_exceptions=True)
 server = app.server
 
-# Serve the GeoJSON file dynamically
-@app.server.route('/geojson')
-def serve_geojson():
-    return jsonify(json.loads(gdf.to_json()))
+# Paths for HTML files
+base_html_path = Path("assets/base_map.html")
+generated_html_path = Path("assets/generated_map.html")
+leaflet_html_path = Path("assets/leaflet_map.html")
+leaflet_html = leaflet_html_path.read_text()
 
-# Layout with sidebar and map
-app.layout = html.Div(
-    style={"position": "relative", "height": "100vh"},
-    children=[
-        # Sidebar
-        html.Div(
-            id="sidebar",
-            style={
-                "position": "absolute",
-                "top": "20px",
-                "left": "20px",
-                "width": "300px",
-                "backgroundColor": "rgba(255, 255, 255, 0.9)",
-                "padding": "15px",
-                "boxShadow": "0px 4px 8px rgba(0, 0, 0, 0.2)",
-                "zIndex": 1000,
-                "borderRadius": "8px",
-            },
-            children=[
-                html.H3("Demographic Data", style={"marginTop": "0", "fontSize": "18px"}),
-
-                # Dropdown for demographic data selection
-                dcc.Dropdown(
-                    id="demographic-dropdown",
-                    options=[
-                        {"label": "Mean Age", "value": "mean_age"},
-                        {"label": "Average Income", "value": "average_income"},
-                        {"label": "Total Population", "value": "total_population"},
-                        {"label": "Female Population", "value": "female_population"},
-                        {"label": "Male Population", "value": "male_population"},
-                        {"label": "Population by Origin", "value": "population_origin"},
-                        {"label": "Population by Age Groups", "value": "population_age"},
-                    ],
-                    placeholder="Select a demographic variable",
-                    multi=False,
-                    style={"width": "100%"},
-                ),
-            ],
-        ),
-
-        # Map container
-        html.Div(
-            id="map-container",
-            style={
-                "position": "absolute",
-                "top": "0",
-                "left": "0",
-                "right": "0",
-                "bottom": "0",
-                "zIndex": 1,
-            },
-            children=[
-                html.Iframe(
-                    id="leaflet-map",
-                    srcDoc="",  # This will be updated dynamically
-                    style={"height": "100%", "width": "100%", "border": "none"},
-                ),
-            ],
-        ),
-    ],
-)
+# Define the layout with buttons for interaction and an iframe for the map
+app.layout = html.Div([
+    html.H1("ACCESSIBILITY TOOL"),
+    html.Button("Accessibility Data", id="button-access"),
+    html.Button("Socioeconomic Data", id="button-socio"),
+    html.Iframe(id="leaflet-map", style={"width": "100%", "height": "90vh"}),
+])
 
 @app.callback(
     Output("leaflet-map", "srcDoc"),
-    Input("demographic-dropdown", "value"),
+    [Input("button-access", "n_clicks"),
+     Input("button-socio", "n_clicks")]
 )
-def update_leaflet_map(selected_data):
-    if not selected_data:
-        # Default empty map
-        return """
-            <html>
-            <head>
-                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
-                <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-            </head>
-            <body>
-                <div id="map" style="height: 100%; width: 100%;"></div>
-                <script>
-                    var map = L.map('map').setView([43.3, -1.9], 8);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-                </script>
-            </body>
-            </html>
+def update_map(button1_clicks, button2_clicks):
+    # Load the base HTML (the static map layout)
+    base_html = base_html_path.read_text()
+
+    # Determine which button was clicked and select appropriate GeoJSON and styles
+    if button1_clicks is not None and button1_clicks > 0:
+        geojson_path = 'data/aggregated_buildings_multipolygons_sections.geojson'
+        style = """
+        const highlightStyle = { color: '#ff0000', weight: 3, opacity: 1 };
+        const defaultStyle = { color: '#3182bd', weight: 2, opacity: 0.8 };
         """
-
-    # Load the selected data
-    if selected_data in sociodemographic_files:
-        if selected_data.endswith(".geojson"):
-            data_gdf = gpd.read_file(sociodemographic_files[selected_data])
-        else:
-            data_df = pd.read_csv(sociodemographic_files[selected_data])
-            data_gdf = gdf.merge(data_df, left_on="CUSEC", right_on="geo_id")
-
-        # Convert to GeoJSON
-        data_geojson = data_gdf.to_json()
-
-        # Generate the Leaflet map with choropleth
-        leaflet_map = f"""
-        <html>
-        <head>
-            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
-            <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-        </head>
-        <body>
-            <div id="map" style="height: 100%; width: 100%;"></div>
-            <script>
-                var map = L.map('map').setView([43.3, -1.9], 8);
-                L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png').addTo(map);
-                
-                var geojsonLayer = L.geoJSON({data_geojson}, {{
-                    style: function (feature) {{
-                        var value = feature.properties.value;  // Adjust for your property
-                        var color = value > 100 ? 'blue' : 
-                                    value > 50 ? 'green' : 
-                                    'red';  // Adjust color logic
-                        return {{color: color, weight: 1}};
-                    }},
-                    onEachFeature: function (feature, layer) {{
-                        layer.bindPopup("Value: " + feature.properties.value);
-                    }}
-                }}).addTo(map);
-            </script>
-        </body>
-        </html>
+        button2_clicks = None  # Reset the other button
+    elif button2_clicks is not None and button2_clicks > 0:
+        geojson_path = 'data/geojson_file2.geojson'
+        style = """
+        const highlightStyle = { color: '#00ff00', weight: 3, opacity: 1 };
+        const defaultStyle = { color: '#3182bd', weight: 2, opacity: 0.8 };
         """
-        return leaflet_map
+        button1_clicks = None  # Reset the other button
+    else:
+        return leaflet_html  # Return base map if no button is clicked
 
-    return "Invalid selection."
+    # Generate the dynamic JavaScript code to add GeoJSON
+    dynamic_js = f"""<script>
+  // Check if map is already defined to avoid redeclaring it
+  if (typeof map === 'undefined') {{
+      const map = L.map('map').setView([43.3, -2.0], 11);
 
+    L.tileLayer('https://{{s}}.basemaps.cartocdn.com/light_all/{{z}}/{{x}}/{{y}}{{r}}.png', {{
+      maxZoom: 19,
+    }}).addTo(map);
+  }}
 
-# Run the app
-if __name__ == '__main__':
-    app.run_server(debug=True)
+  // Define styles for GeoJSON
+  const highlightStyle = {{ color: '#ff0000', weight: 3, opacity: 1 }};
+  const defaultStyle = {{ color: '#3182bd', weight: 2, opacity: 0.8 }};
+
+  // Fetch GeoJSON data based on button clicked
+  fetch('/data/geojson_file1.geojson')
+    .then(response => response.json())
+    .then(geojsonData => {{
+      const geojsonLayer = L.geoJson(geojsonData, {{
+        style: defaultStyle,
+        onEachFeature: (feature, layer) => {{
+          layer.on('mouseover', () => {{
+            layer.setStyle(highlightStyle);
+          }});
+          layer.on('mouseout', () => {{
+            geojsonLayer.resetStyle(layer);
+          }});
+          layer.bindTooltip(
+            `<strong>${{feature.properties['CUSEC']}}</strong><br>Municipio: ${{feature.properties['Municipio']}}`,
+            {{ permanent: false, direction: 'top' }}
+          );
+        }},
+      }}).addTo(map);
+    }})
+    .catch(error => console.error('Error loading GeoJSON:', error));
+</script>
+"""
+    # Combine the base HTML with the dynamic JavaScript
+    full_html = base_html.replace("</body>", f"{dynamic_js}</body>")
+
+    # Save the generated HTML (optional, for future reference)
+    generated_html_path.write_text(full_html)
+
+    return full_html  # Return the updated HTML
+
+# Route to serve GeoJSON files
+@app.server.route('/data/<filename>')
+def serve_geojson(filename):
+    return send_file(f'data/{filename}')
+
+if __name__ == "__main__":
+    app.run_server(debug=False)
 
