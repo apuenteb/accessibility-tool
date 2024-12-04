@@ -13,12 +13,15 @@
         width: 100vw;
         margin: 0;
       }
-      /* Remove black outline from Leaflet map */
+
       path.leaflet-interactive:focus {
         outline: none;
       }
 
-      .leaflet-control-container { position: absolute; right: 100px } 
+      .leaflet-control-container {
+        position: absolute;
+        right: 100px;
+      }
 
       ::-webkit-scrollbar {
         display: none;
@@ -30,38 +33,59 @@
     <script>
       const map = L.map('map').setView([43.3, -2.0], 11);
 
+      // Add a tile layer for the base map
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
       }).addTo(map);
 
-      // Define highlight style (white)
+      // Define the visual style for the bottom layer
+      const visualStyle = {
+        color: '#3182bd',
+        weight: 2,
+        opacity: 0.8,
+        fillColor: '#6baed6',
+        fillOpacity: 0.4,
+      };
+
+      // Define the highlight style for the top interactive layer
       const highlightStyle = {
-        color: '#2b5775', // White color
-        weight: 3,        // Increase thickness for better visibility
+        color: '#2b5775',
+        weight: 3,
         opacity: 1,
       };
 
-      // Define default style
+      // Default style for the interactive top layer
       const defaultStyle = {
-        color: '#3182bd', // Default blue
-        weight: 2,
-        opacity: 0.8,
+        color: '#3182bd',
+        weight: 0, // No border for interactive layer
+        fillOpacity: 0, // Fully transparent by default
       };
 
-      // Fetch GeoJSON data dynamically
-      fetch('/geojson')
-        .then(response => response.json())
-        .then(geojsonData => {
-          const geojsonLayer = L.geoJson(geojsonData, {
-            style: defaultStyle,
+      // Fetch and render the bottom visual GeoJSON layer
+      fetch('/geojson-bottom') // Endpoint for the bottom layer
+        .then((response) => response.json())
+        .then((geojsonData) => {
+          L.geoJson(geojsonData, {
+            style: visualStyle, // Style for the background layer
+          }).addTo(map);
+        })
+        .catch((error) => console.error('Error loading bottom GeoJSON:', error));
+
+      // Fetch and render the top interactive GeoJSON layer
+      fetch('/geojson-top') // Endpoint for the top layer
+        .then((response) => response.json())
+        .then((geojsonData) => {
+          const interactiveLayer = L.geoJson(geojsonData, {
+            style: defaultStyle, // Transparent by default
             onEachFeature: (feature, layer) => {
               layer.on('mouseover', () => {
-                layer.setStyle(highlightStyle); // Apply white highlight
+                layer.setStyle(highlightStyle); // Apply highlight on hover
               });
               layer.on('mouseout', () => {
-                geojsonLayer.resetStyle(layer); // Reapply default style
+                interactiveLayer.resetStyle(layer); // Reset style on mouseout
               });
-              // Tooltip on hover
+
+              // Add a tooltip with feature properties
               layer.bindTooltip(
                 `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
                 {
@@ -72,9 +96,7 @@
             },
           }).addTo(map);
         })
-        .catch(error => console.error('Error loading GeoJSON:', error));
+        .catch((error) => console.error('Error loading top GeoJSON:', error));
     </script>
   </body>
 </html>
-
-

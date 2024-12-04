@@ -27,8 +27,13 @@ def serve_leaflet_map():
     return send_file('assets/prueba_map.html')
 
 # Serve the GeoJSON file
-@app.server.route('/geojson')
-def serve_geojson():
+@app.server.route('/geojson-bottom')
+def serve_geojson_bottom():
+    return send_file('data/buildings.geojson')
+
+# Serve the GeoJSON file
+@app.server.route('/geojson-top')
+def serve_geojson_top():
     return send_file('data/aggregated_buildings_multipolygons_sections.geojson')
 
 # Layout with sidebar and map
