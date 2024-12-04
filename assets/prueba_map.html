@@ -38,7 +38,7 @@
         maxZoom: 19,
       }).addTo(map);
 
-      // Define the visual style for the bottom layer
+      // Define the visual style for the bottom layer (static background)
       const visualStyle = {
         color: '#3182bd',
         weight: 2,
@@ -47,42 +47,39 @@
         fillOpacity: 0.4,
       };
 
-      // Define the highlight style for the top interactive layer
+      // Define the highlight style for the interactive layer (hover effect)
       const highlightStyle = {
         color: '#2b5775',
         weight: 3,
         opacity: 1,
+        fillOpacity: 0.7,  // Optional: make the highlighted polygons less transparent
       };
 
-      // Default style for the interactive top layer
-      const defaultStyle = {
-        color: '#3182bd',
-        weight: 0, // No border for interactive layer
-        fillOpacity: 0, // Fully transparent by default
-      };
+      let highlightedLayers = [];  // Store layers to highlight
 
-      // Fetch and render the bottom visual GeoJSON layer
-      fetch('/geojson-bottom') // Endpoint for the bottom layer
+      // Fetch and render the GeoJSON layer (both visual and interactive)
+      fetch('/geojson') // Use a single GeoJSON endpoint
         .then((response) => response.json())
         .then((geojsonData) => {
-          L.geoJson(geojsonData, {
-            style: visualStyle, // Style for the background layer
-          }).addTo(map);
-        })
-        .catch((error) => console.error('Error loading bottom GeoJSON:', error));
-
-      // Fetch and render the top interactive GeoJSON layer
-      fetch('/geojson-top') // Endpoint for the top layer
-        .then((response) => response.json())
-        .then((geojsonData) => {
-          const interactiveLayer = L.geoJson(geojsonData, {
-            style: defaultStyle, // Transparent by default
+          const geojsonLayer = L.geoJson(geojsonData, {
+            style: visualStyle, // Apply the visual style for the background
             onEachFeature: (feature, layer) => {
+              // Add hover interaction for the interactive layer
               layer.on('mouseover', () => {
-                layer.setStyle(highlightStyle); // Apply highlight on hover
+                const CUSEC = feature.properties['CUSEC'];
+
+                // Highlight all polygons with the same CUSEC value
+                geojsonLayer.eachLayer((otherLayer) => {
+                  if (otherLayer.feature.properties['CUSEC'] === CUSEC) {
+                    otherLayer.setStyle(highlightStyle); // Apply highlight style
+                    highlightedLayers.push(otherLayer); // Store highlighted layers
+                  }
+                });
               });
+
+              // Reset the style for all highlighted layers when the mouse leaves any layer
               layer.on('mouseout', () => {
-                interactiveLayer.resetStyle(layer); // Reset style on mouseout
+                resetHighlightedLayers(); // Reset all highlighted layers to default style
               });
 
               // Add a tooltip with feature properties
@@ -96,7 +93,16 @@
             },
           }).addTo(map);
         })
-        .catch((error) => console.error('Error loading top GeoJSON:', error));
+        .catch((error) => console.error('Error loading GeoJSON:', error));
+
+      // Function to reset the highlighted layers
+      function resetHighlightedLayers() {
+        // Reset all highlighted layers to the original style
+        highlightedLayers.forEach((layer) => {
+          layer.setStyle(visualStyle); // Reapply default visual style
+        });
+        highlightedLayers = []; // Clear the list of highlighted layers
+      }
     </script>
   </body>
 </html>
