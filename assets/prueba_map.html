@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Leaflet Hover Example</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <style>
+      #map {
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+      }
+      /* Remove black outline from Leaflet map */
+      path.leaflet-interactive:focus {
+        outline: none;
+      }
+
+      .leaflet-control-container { position: absolute; right: 100px } 
+
+      ::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      const map = L.map('map').setView([43.3, -2.0], 11);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+      }).addTo(map);
+
+      // Define highlight style (white)
+      const highlightStyle = {
+        color: '#2b5775', // White color
+        weight: 3,        // Increase thickness for better visibility
+        opacity: 1,
+      };
+
+      // Define default style
+      const defaultStyle = {
+        color: '#3182bd', // Default blue
+        weight: 2,
+        opacity: 0.8,
+      };
+
+      // Fetch GeoJSON data dynamically
+      fetch('/geojson')
+        .then(response => response.json())
+        .then(geojsonData => {
+          const geojsonLayer = L.geoJson(geojsonData, {
+            style: defaultStyle,
+            onEachFeature: (feature, layer) => {
+              layer.on('mouseover', () => {
+                layer.setStyle(highlightStyle); // Apply white highlight
+              });
+              layer.on('mouseout', () => {
+                geojsonLayer.resetStyle(layer); // Reapply default style
+              });
+              // Tooltip on hover
+              layer.bindTooltip(
+                `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
+                {
+                  permanent: false,
+                  direction: 'top',
+                }
+              );
+            },
+          }).addTo(map);
+        })
+        .catch(error => console.error('Error loading GeoJSON:', error));
+    </script>
+  </body>
+</html>
+
+
