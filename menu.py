@@ -17,6 +17,13 @@ fb_values = [
     {"id": "cafes", "label": "Cafes", "checked": False},
 ]
 
+retail1_values = [
+    {"id": "catering", "label": "Catering", "checked": False},
+    {"id": "bars", "label": "Bars", "checked": False},
+    {"id": "restaurants", "label": "Restaurants", "checked": False},
+    {"id": "cafes", "label": "Cafes", "checked": False},
+]
+
 ################################################## LAYOUT ################################################################
 app.layout = html.Div([
     dbc.Accordion(
@@ -55,7 +62,25 @@ app.layout = html.Div([
                 item_id="lodging",
             ),
             dbc.AccordionItem(
-                "This is the content of the third section",
+                dmc.MantineProvider(
+                            children=html.Div([
+                            dmc.Checkbox(
+                                id="all-retail1",
+                                label="Retail (Consumer Goods)",
+                                checked=False,
+                                indeterminate=False
+                            ),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "retail1-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(retail1_values)
+                            ])
+                        ])
+                ),
                 title="Shop",
                 item_id="shop",
             ),

@@ -1,11 +1,24 @@
 import dash
-from dash import html
+from dash import dcc, html, Input, Output, State, _dash_renderer, Dash, callback
 from flask import send_file
+import pandas as pd
+import geopandas as gpd
+import json
+import plotly.express as px
 import dash_mantine_components as dmc
 
-# Set the React version for Dash Mantine Components
-from dash import _dash_renderer
 _dash_renderer._set_react_version("18.2.0")
+
+# File paths for demographic data
+sociodemographic_files = {
+    "mean_age": "path_to_mean_age.csv",
+    "average_income": "path_to_average_income.csv",
+    "total_population": "path_to_total_population.csv",
+    "female_population": "section_gipuzkoa_demographic_women.geojson",
+    "male_population": "path_to_male_population.csv",
+    "population_origin": "path_to_population_origin.csv",
+    "population_age": "path_to_population_age.csv",
+}
 
 # Dash app setup
 app = dash.Dash(external_stylesheets=dmc.styles.ALL)
@@ -15,6 +28,11 @@ server = app.server
 @app.server.route('/assets/prueba_map')
 def serve_leaflet_map():
     return send_file('assets/prueba_map.html')
+
+# Serve the GeoJSON file
+@app.server.route('/geojson')
+def serve_geojson_bottom():
+    return send_file('data/buildings_by_section.geojson')
 
 # Layout with sidebar over the map
 app.layout = html.Div(
@@ -40,7 +58,6 @@ app.layout = html.Div(
             ],
         ),
 
-        # Sidebar content
         html.Div(
             style={
                 "position": "absolute",
