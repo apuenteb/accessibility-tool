@@ -1,23 +1,11 @@
 import dash
-from dash import dcc, html, Input, Output, State, _dash_renderer, Dash
+from dash import html
 from flask import send_file
-import pandas as pd
-import geopandas as gpd
-import json
-import plotly.express as px
 import dash_mantine_components as dmc
-_dash_renderer._set_react_version("18.2.0")
 
-# File paths for demographic data
-sociodemographic_files = {
-    "mean_age": "path_to_mean_age.csv",
-    "average_income": "path_to_average_income.csv",
-    "total_population": "path_to_total_population.csv",
-    "female_population": "section_gipuzkoa_demographic_women.geojson",
-    "male_population": "path_to_male_population.csv",
-    "population_origin": "path_to_population_origin.csv",
-    "population_age": "path_to_population_age.csv",
-}
+# Set the React version for Dash Mantine Components
+from dash import _dash_renderer
+_dash_renderer._set_react_version("18.2.0")
 
 # Dash app setup
 app = dash.Dash(external_stylesheets=dmc.styles.ALL)
@@ -28,51 +16,10 @@ server = app.server
 def serve_leaflet_map():
     return send_file('assets/prueba_map.html')
 
-# Serve the GeoJSON file
-@app.server.route('/geojson')
-def serve_geojson_bottom():
-    return send_file('data/buildings_by_section.geojson')
-
-# Layout with sidebar and map
+# Layout with sidebar over the map
 app.layout = html.Div(
     style={"position": "relative", "height": "100vh"},
     children=[
-        # Sidebar
-        html.Div(
-            id="sidebar",
-            style={
-                "position": "absolute",
-                "top": "20px",
-                "left": "20px",
-                "width": "300px",
-                "backgroundColor": "rgba(255, 255, 255, 0.9)",
-                "padding": "15px",
-                "boxShadow": "0px 4px 8px rgba(0, 0, 0, 0.2)",
-                "zIndex": 1000,
-                "borderRadius": "8px",
-            },
-            children=[
-                html.H3("Demographic Data", style={"marginTop": "0", "fontSize": "18px"}),
-
-                # Dropdown for demographic data selection
-                dcc.Dropdown(
-                    id="demographic-dropdown",
-                    options=[
-                        {"label": "Mean Age", "value": "mean_age"},
-                        {"label": "Average Income", "value": "average_income"},
-                        {"label": "Total Population", "value": "total_population"},
-                        {"label": "Female Population", "value": "female_population"},
-                        {"label": "Male Population", "value": "male_population"},
-                        {"label": "Population by Origin", "value": "population_origin"},
-                        {"label": "Population by Age Groups", "value": "population_age"},
-                    ],
-                    placeholder="Select a demographic variable",
-                    multi=False,
-                    style={"width": "100%"},
-                ),
-            ],
-        ),
-
         # Map container
         html.Div(
             id="map-container",
@@ -90,10 +37,43 @@ app.layout = html.Div(
                     src="/assets/prueba_map",
                     style={"height": "100%", "width": "100%", "border": "none"},
                 ),
-                html.Div(
-                    id="map-overlay",
-                    style={"display": "none"},  # Will display dynamically
-                ),
+            ],
+        ),
+
+        # Sidebar content
+        html.Div(
+            style={
+                "position": "absolute",
+                "top": "10px",
+                "left": "10px",
+                "width": "350px",
+                "backgroundColor": "white",
+                "padding": "10px",
+                "boxShadow": "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                "zIndex": 2,  # Ensure it's above the map
+            },
+            children=[
+                dmc.MantineProvider(
+                    [
+                        dmc.Title("Select the Points of Interest", order=3),
+                        dmc.ScrollArea(
+                            h=250,
+                            w=350,
+                            children=dmc.Stack(
+                                [
+                                    dmc.Checkbox(id="farmacias", checked=False, label="Pharmacies"),
+                                    dmc.Checkbox(id="bibliotecas-publicas", checked=False, label="Public libraries"),
+                                    dmc.Checkbox(id="colegios", checked=False, label="Schools"),
+                                    dmc.Checkbox(id="supermercados", checked=False, label="Supermarkets"),
+                                    dmc.Checkbox(id="instalaciones-deportivas", checked=False, label="Sports facilities"),
+                                    dmc.Checkbox(id="restaurantes", checked=False, label="Restaurants"),
+                                    dmc.Checkbox(id="gym", checked=False, label="Gyms"),
+                                    dmc.Checkbox(id="paradas-pt", checked=False, label="Public transport stops"),
+                                ]
+                            ),
+                        ),
+                    ]
+                )
             ],
         ),
     ],
