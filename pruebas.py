@@ -1,10 +1,12 @@
 import dash
-from dash import dcc, html, Input, Output, State
+from dash import dcc, html, Input, Output, State, _dash_renderer, Dash
 from flask import send_file
 import pandas as pd
 import geopandas as gpd
 import json
 import plotly.express as px
+import dash_mantine_components as dmc
+_dash_renderer._set_react_version("18.2.0")
 
 # File paths for demographic data
 sociodemographic_files = {
@@ -18,7 +20,7 @@ sociodemographic_files = {
 }
 
 # Dash app setup
-app = dash.Dash(__name__)
+app = dash.Dash(external_stylesheets=dmc.styles.ALL)
 server = app.server
 
 # Flask route to serve the Leaflet map
