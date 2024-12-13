@@ -24,7 +24,16 @@ def serve_leaflet_map():
 # Serve the GeoJSON file
 @app.server.route('/geojson')
 def serve_geojson_bottom():
-    return send_file('data/buildings_by_section.geojson')
+    return send_file('assets/buildings_by_section.geojson')
+
+# Flask route to serve POI GeoJSON files
+@app.server.route('/geojson/<layer_id>')
+def serve_geojson(layer_id):
+    geojson_files = {
+        "schools": "assets/filtered-centros-educativos.geojson",
+        "libraries": "assets/filtered-bibliotecas.geojson",
+    }
+    return send_file(geojson_files[layer_id])
 
 ################################################## LAYOUT ################################################################
 app.layout = html.Div(
@@ -110,6 +119,18 @@ def update_educational_checkbox(all_checked, checked_states):
     all_checked_states = all(checked_states)
     indeterminate = any(checked_states) and not all_checked_states
     return all_checked_states, indeterminate, checked_states
+
+@callback(
+    Output("prueba-map", "src"),
+    Input({"type": "educational-item", "index": ALL}, "checked"),
+    [Input({"type": "educational-item", "index": ALL}, "id")]
+)
+def update_map(selected_states, ids):
+    # Convert indices to strings for the query parameter
+    selected_layers = [str(ids[i]["index"]) for i, state in enumerate(selected_states) if state]
+    query = ",".join(selected_layers)  # Create a query parameter as a string
+    return f"/assets/prueba_map?selected_layers={query}"
+
 
 ################################################## RUN ################################################################
 if __name__ == "__main__":

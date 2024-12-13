@@ -103,6 +103,34 @@
         });
         highlightedLayers = []; // Clear the list of highlighted layers
       }
+
+      const poiLayers = {};
+
+  // Function to load GeoJSON for a given layer
+  function loadPOILayer(layerId) {
+    if (poiLayers[layerId]) {
+      map.removeLayer(poiLayers[layerId]); // Remove existing layer
+      delete poiLayers[layerId];
+    } else {
+      fetch(`/geojson/${layerId}`)
+        .then((response) => response.json())
+        .then((geojsonData) => {
+          poiLayers[layerId] = L.geoJson(geojsonData, {
+            onEachFeature: (feature, layer) => {
+              layer.bindPopup(`<strong>${feature.properties.name}</strong>`);
+            },
+          }).addTo(map);
+        })
+        .catch((error) => console.error('Error loading POI GeoJSON:', error));
+    }
+  }
+
+  // Capture URL params to identify selected layers
+  const params = new URLSearchParams(window.location.search);
+  const selectedLayers = params.get('selected_layers');
+  if (selectedLayers) {
+    selectedLayers.split(',').forEach((layerId) => loadPOILayer(layerId));
+  }
     </script>
   </body>
 </html>
