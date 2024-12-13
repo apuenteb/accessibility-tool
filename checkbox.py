@@ -35,7 +35,7 @@ function(feature, context){
 
 # Non-interactive layer with default color styling
 non_interactive_layer = dl.GeoJSON(
-    url="/assets/aggregated_buildings_multipolygons_sections.geojson",  # url to geojson file
+    url="/assets/buildings_by_section.geojson",  # url to geojson file
     style=style_handle,  # how to style each polygon
     zoomToBounds=True,  # when true, zooms to bounds when data changes (e.g. on load)
     zoomToBoundsOnClick=True,  # when true, zooms to bounds of feature (e.g. polygon) on click
