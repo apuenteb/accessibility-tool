@@ -1,28 +1,20 @@
+import dash_bootstrap_components as dbc
 import dash
-from dash import dcc, html, Input, Output, State, _dash_renderer, Dash, callback
-from flask import send_file
-import pandas as pd
-import geopandas as gpd
-import json
-import plotly.express as px
 import dash_mantine_components as dmc
+from dash import html, Input, Output, ALL, callback, ctx, _dash_renderer
+from flask import send_file
 
+################################################## SETUP ################################################################
 _dash_renderer._set_react_version("18.2.0")
-
-# File paths for demographic data
-sociodemographic_files = {
-    "mean_age": "path_to_mean_age.csv",
-    "average_income": "path_to_average_income.csv",
-    "total_population": "path_to_total_population.csv",
-    "female_population": "section_gipuzkoa_demographic_women.geojson",
-    "male_population": "path_to_male_population.csv",
-    "population_origin": "path_to_population_origin.csv",
-    "population_age": "path_to_population_age.csv",
-}
-
-# Dash app setup
-app = dash.Dash(external_stylesheets=dmc.styles.ALL)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
 server = app.server
+
+######################################### INITIALIZATION OF VARIABLES ################################################################
+educational_layers = [
+    {"id": "schools", "label": "Schools", "checked": False},
+    {"id": "libraries", "label": "Libraries", "checked": False},
+]
+
 
 # Flask route to serve the Leaflet map
 @app.server.route('/assets/prueba_map')
@@ -34,10 +26,52 @@ def serve_leaflet_map():
 def serve_geojson_bottom():
     return send_file('data/buildings_by_section.geojson')
 
-# Layout with sidebar over the map
+################################################## LAYOUT ################################################################
 app.layout = html.Div(
-    style={"position": "relative", "height": "100vh"},
-    children=[
+    [
+        # Floating menu
+        html.Div(
+            dbc.Accordion(
+                [
+                    dbc.AccordionItem(
+                        dmc.MantineProvider(
+                            children=html.Div([
+                                dmc.Checkbox(
+                                    id="all-educational",
+                                    label="Educational",
+                                    checked=False,
+                                    indeterminate=False,
+                                ),
+                                html.Div([
+                                    dmc.Checkbox(
+                                        id={"type": "educational-item", "index": i},
+                                        label=item["label"],
+                                        checked=item["checked"],
+                                        style={"marginTop": "5px", "marginLeft": "33px"},
+                                    )
+                                    for i, item in enumerate(educational_layers)
+                                ]),
+                            ])
+                        ),
+                        title="Educational Layers",
+                        item_id="educational",
+                    ),
+                ],
+                id="accordion",
+                active_item="educational",
+            ),
+            style={
+                "position": "absolute",
+                "top": "10px",
+                "left": "10px",
+                "zIndex": "1000",
+                "backgroundColor": "rgba(255, 255, 255, 0.9)",
+                "padding": "10px",
+                "borderRadius": "5px",
+                "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+                "width": "250px",
+            },
+        ),
         # Map container
         html.Div(
             id="map-container",
@@ -57,45 +91,26 @@ app.layout = html.Div(
                 ),
             ],
         ),
-
-        html.Div(
-            style={
-                "position": "absolute",
-                "top": "10px",
-                "left": "10px",
-                "width": "350px",
-                "backgroundColor": "white",
-                "padding": "10px",
-                "boxShadow": "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                "zIndex": 2,  # Ensure it's above the map
-            },
-            children=[
-                dmc.MantineProvider(
-                    [
-                        dmc.Title("Select the Points of Interest", order=3),
-                        dmc.ScrollArea(
-                            h=250,
-                            w=350,
-                            children=dmc.Stack(
-                                [
-                                    dmc.Checkbox(id="farmacias", checked=False, label="Pharmacies"),
-                                    dmc.Checkbox(id="bibliotecas-publicas", checked=False, label="Public libraries"),
-                                    dmc.Checkbox(id="colegios", checked=False, label="Schools"),
-                                    dmc.Checkbox(id="supermercados", checked=False, label="Supermarkets"),
-                                    dmc.Checkbox(id="instalaciones-deportivas", checked=False, label="Sports facilities"),
-                                    dmc.Checkbox(id="restaurantes", checked=False, label="Restaurants"),
-                                    dmc.Checkbox(id="gym", checked=False, label="Gyms"),
-                                    dmc.Checkbox(id="paradas-pt", checked=False, label="Public transport stops"),
-                                ]
-                            ),
-                        ),
-                    ]
-                )
-            ],
-        ),
-    ],
+    ]
 )
 
-# Run the app
-if __name__ == '__main__':
+################################################## CALLBACKS ################################################################
+@callback(
+    Output("all-educational", "checked"),
+    Output("all-educational", "indeterminate"),
+    Output({"type": "educational-item", "index": ALL}, "checked"),
+    Input("all-educational", "checked"),
+    Input({"type": "educational-item", "index": ALL}, "checked"),
+    prevent_initial_callback=True,
+)
+def update_educational_checkbox(all_checked, checked_states):
+    if ctx.triggered_id == "all-educational":
+        checked_states = [all_checked] * len(checked_states)
+
+    all_checked_states = all(checked_states)
+    indeterminate = any(checked_states) and not all_checked_states
+    return all_checked_states, indeterminate, checked_states
+
+################################################## RUN ################################################################
+if __name__ == "__main__":
     app.run_server(debug=True)
