@@ -1,58 +1,113 @@
 import dash
+from dash import html, Input, Output, ALL, callback, ctx, _dash_renderer
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
-from dash import html, Input, Output, ALL, callback, ctx, _dash_renderer
 import dash_leaflet as dl
-from dash_extensions.javascript import arrow_function
+from dash_extensions.javascript import assign
 
-################################################## SETUP ################################################################
+# Inline JavaScript for styles
+visual_style = assign("""
+    function(feature) {
+        return {
+            color: '#3182bd',
+            weight: 2,
+            opacity: 0.8,
+            fillColor: '#6baed6',
+            fillOpacity: 0.4
+        };
+    }
+""")
+
+highlight_style = assign("""
+    function() {
+        return {
+            color: '#2b5775',
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 0.7
+        };
+    }
+""")
+
+# Inline JavaScript for interaction
+on_each_feature = assign("""
+    function(feature, layer) {
+        // Reference to highlighted layers
+        let highlightedLayers = [];
+
+        // Mouseover event
+        layer.on('mouseover', function() {
+            const CUSEC = feature.properties['CUSEC'];
+            
+            // Highlight all polygons with the same CUSEC
+            this._map.eachLayer((otherLayer) => {
+                if (otherLayer.feature && otherLayer.feature.properties['CUSEC'] === CUSEC) {
+                    otherLayer.setStyle({
+                        color: '#2b5775',
+                        weight: 3,
+                        opacity: 1,
+                        fillOpacity: 0.7
+                    });
+                    highlightedLayers.push(otherLayer);
+                }
+            });
+        });
+
+        // Mouseout event
+        layer.on('mouseout', function() {
+            // Reset the style of all highlighted layers
+            highlightedLayers.forEach((hlLayer) => {
+                hlLayer.setStyle({
+                    color: '#3182bd',
+                    weight: 2,
+                    opacity: 0.8,
+                    fillColor: '#6baed6',
+                    fillOpacity: 0.4
+                });
+            });
+            highlightedLayers = [];
+        });
+
+        // Tooltip
+        layer.bindTooltip(
+            `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
+            { permanent: false, direction: 'top' }
+        );
+    }
+""")
+
+# Dash app
 _dash_renderer._set_react_version("18.2.0")
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
 server = app.server
 
-######################################### INITIALIZATION OF VARIABLES ################################################################
 # Example points for each layer
 educational_layers = [
     {"id": "schools", "label": "Schools", "checked": False, "points": [[51.505, -0.09], [51.51, -0.08]]},
     {"id": "libraries", "label": "Libraries", "checked": False, "points": [[51.515, -0.07], [51.52, -0.06]]},
 ]
 
-
-style_handle = {
-    "color": "blue",
-    "weight": 2,
-    "fillColor": "blue",
-    "fillOpacity": 0.4
-}
-
-hover_style = {
-    "weight": 5,
-    "color": '#666',
-    "dashArray": ''
-}
-
-geojson = dl.GeoJSON(
-    url="/assets/sections_gipuzkoa.geojson",  # Adjust the path to your GeoJSON file
-    style=style_handle,  # Styling for the polygons
-    zoomToBounds=True,  # Auto zoom to bounds when data is loaded
-    zoomToBoundsOnClick=True,  # Zoom to polygon bounds on click
-    hoverStyle=hover_style,  # Hover styling
-    onEachFeature="""
-        function(feature, layer) {
-            layer.on('mouseover', function() {
-                layer.setStyle({weight: 5, color: '#666', dashArray: ''});
-            });
-            layer.on('mouseout', function() {
-                layer.setStyle({weight: 2, color: 'white', dashArray: '3'});
-            });
-        }
-    """,
-    id="geojson"
-)
-
-################################################## LAYOUT ################################################################
-app.layout = html.Div([
-    html.Div(
+# Layout
+app.layout = html.Div(
+    [
+        dl.Map(
+            [
+                dl.TileLayer(
+                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                    maxZoom=19,
+                ),
+                dl.GeoJSON(
+                    id="geojson",
+                    url="/assets/buildings_by_section.geojson",  # Replace with your actual endpoint
+                    options=dict(style=visual_style, onEachFeature=on_each_feature),
+                ),
+                dl.LayerGroup(id="map-points"),
+            ],
+            center=[43.3, -2.0],
+            zoom=11,
+            style={"height": "100vh", "width": "100%"},
+        ),
+        html.Div(
         dbc.Accordion(
             [
                 dbc.AccordionItem(
@@ -98,21 +153,9 @@ app.layout = html.Div([
             "width": "250px",
         },
     ),
-    dl.Map(
-        [
-            dl.TileLayer(),
-            dl.LayerGroup(id="map-points"),
-            geojson
-        ],
-        center=[51.505, -0.09],
-        zoom=13,
-        style={"height": "100vh", "width": "100%"},
-    ),
-])
+    ]
+)
 
-
-
-############################################### CALLBACKS ################################################################
 @callback(
     Output("all-educational", "checked"),
     Output("all-educational", "indeterminate"),
@@ -150,8 +193,6 @@ def update_map(checked_states):
             map_points.extend(layer_points)
     return map_points
 
-
-################################################## RUN ################################################################
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run_server(debug=True)
 
