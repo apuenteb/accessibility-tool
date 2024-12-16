@@ -110,11 +110,132 @@ with open("assets/filtered-centros-educativos.geojson", "r") as f:
 with open("assets/filtered-bibliotecas.geojson", "r") as f:
     libraries_geojson = json.load(f)
 
-# Create a dictionary to map checkboxes to GeoJSON data
+# Dictionaries by POI categories
 educational_layers = [
     {"label": "Schools", "geojson": schools_geojson, "checked": False},
     {"label": "Bibliotecas", "geojson": libraries_geojson, "checked": False},
 ]
+
+train_layers = [
+    {"label": "Euskotren", "checked": False},
+    {"label": "Renfe Cercanías", "checked": False},
+]
+
+bus_layers=[
+    {"label": "Lurraldebus", "checked": False},
+    {"label": "DBus", "checked": False},
+]
+
+bike_layers=[
+    {"label": "DBizi", "checked": False},
+]
+
+poi_menu=html.Div(
+            dbc.Accordion(
+                [
+                    # Educational Section
+                    dbc.AccordionItem(
+                        dmc.MantineProvider(
+                            children=[
+                                dmc.Checkbox(
+                                    id="all-educational",
+                                    label="Educational",
+                                    checked=False,
+                                    indeterminate=False
+                                ),
+                                html.Div([
+                                    dmc.Checkbox(
+                                        id={"type": "educational-item", "index": i},
+                                        label=item["label"],
+                                        checked=item["checked"],
+                                        style={"marginTop": "5px", "marginLeft": "33px"}
+                                    )
+                                    for i, item in enumerate(educational_layers)
+                                ])
+                            ]
+                        ),
+                        title="Education",
+                        item_id="educational",
+                    ),
+                    # Transport Section
+                    dbc.AccordionItem(
+                        dmc.MantineProvider(
+                            children=[
+                                # Bus
+                                html.Div([
+                                    dmc.Checkbox(
+                                        id="all-bus",
+                                        label="Bus",
+                                        checked=False,
+                                        indeterminate=False
+                                    ),
+                                    html.Div([
+                                        dmc.Checkbox(
+                                            id={"type": "bus-item", "index": i},
+                                            label=item["label"],
+                                            checked=item["checked"],
+                                            style={"marginTop": "5px", "marginLeft": "33px"}
+                                        )
+                                        for i, item in enumerate(bus_layers)
+                                    ])
+                                ]),
+                                # Train
+                                html.Div([
+                                    dmc.Checkbox(
+                                        id="all-train",
+                                        label="Train",
+                                        checked=False,
+                                        indeterminate=False
+                                    ),
+                                    html.Div([
+                                        dmc.Checkbox(
+                                            id={"type": "train-item", "index": i},
+                                            label=item["label"],
+                                            checked=item["checked"],
+                                            style={"marginTop": "5px", "marginLeft": "33px"}
+                                        )
+                                        for i, item in enumerate(train_layers)
+                                    ])
+                                ]),
+                                # Bike
+                                html.Div([
+                                    dmc.Checkbox(
+                                        id="all-bike",
+                                        label="Bike",
+                                        checked=False,
+                                        indeterminate=False
+                                    ),
+                                    html.Div([
+                                        dmc.Checkbox(
+                                            id={"type": "bike-item", "index": i},
+                                            label=item["label"],
+                                            checked=item["checked"],
+                                            style={"marginTop": "5px", "marginLeft": "33px"}
+                                        )
+                                        for i, item in enumerate(bike_layers)
+                                    ])
+                                ]),
+                            ]
+                        ),
+                        title="Transport",
+                        item_id="transport",
+                    ),
+                ],
+                id="accordion",
+                active_item="educational",
+            ),
+            style={
+            "position": "absolute",
+            "top": "10px",
+            "left": "10px",
+            "zIndex": "1000",
+            "backgroundColor": "rgba(255, 255, 255, 0.9)",
+            "padding": "10px",
+            "borderRadius": "5px",
+            "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+            "width": "250px",
+        },
+    )
 
 # Layout
 app.layout = html.Div(
@@ -133,52 +254,7 @@ app.layout = html.Div(
             zoom=11,
             style={"height": "100vh", "width": "100%"},
         ),
-        html.Div(
-        dbc.Accordion(
-            [
-                dbc.AccordionItem(
-                    dmc.MantineProvider(
-                        children=html.Div([
-
-                            dmc.Checkbox(
-                                id="all-educational",
-                                label="Educational",
-                                checked=False,
-                                indeterminate=False
-                            ), 
-
-                            html.Div([
-
-                                dmc.Checkbox(
-                                    id={"type": "educational-item", "index": i},
-                                    label=item["label"],
-                                    checked=item["checked"],
-                                    style={"marginTop": "5px", "marginLeft": "33px"}
-                                )
-
-                                for i, item in enumerate(educational_layers)
-                            ])
-                        ])
-                    ),
-                    title="Educational Layers",
-                    item_id="educational",
-                ),
-            ],
-            id="accordion",
-            active_item="educational",
-        ),
-        style={
-            "position": "absolute",
-            "top": "10px",
-            "left": "10px",
-            "zIndex": "1000",
-            "backgroundColor": "rgba(255, 255, 255, 0.9)",
-            "padding": "10px",
-            "borderRadius": "5px",
-            "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
-            "width": "250px",
-        },
-    ),
+        poi_menu,
     info
     ]
 )
@@ -191,12 +267,12 @@ app.layout = html.Div(
     Input({"type": "educational-item", "index": ALL}, "checked"),
     prevent_initial_callback=True
 )
-def update_educational_checkbox(all_checked, checked_states):
-    # Handle parent checkbox
+def update_main_checkbox(all_checked, checked_states):
+    # handle "all" checkbox"
     if ctx.triggered_id == 'all-educational':
         checked_states = [all_checked] * len(checked_states)
 
-    # Handle child checkboxes
+    # handled individual check boxes
     all_checked_states = all(checked_states)
     indeterminate = any(checked_states) and not all_checked_states
     return all_checked_states, indeterminate, checked_states
