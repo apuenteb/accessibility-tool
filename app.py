@@ -271,12 +271,10 @@ def update_main_checkbox(all_checked, checked_states):
     # handle "all" checkbox"
     if ctx.triggered_id == 'all-educational':
         checked_states = [all_checked] * len(checked_states)
-
     # handled individual check boxes
     all_checked_states = all(checked_states)
     indeterminate = any(checked_states) and not all_checked_states
     return all_checked_states, indeterminate, checked_states
-
 
 @callback(
     Output("map-points", "children"),
@@ -301,6 +299,56 @@ def update_map(checked_states):
                         )
     return map_points
 
+@callback(
+    Output("all-train", "checked"),
+    Output("all-train", "indeterminate"),
+    Output({"type": "train-item", "index": ALL}, "checked"),
+    Input("all-train", "checked"),
+    Input({"type": "train-item", "index": ALL}, "checked"),
+    prevent_initial_callback=True
+)
+def update_main_checkbox(all_checked, checked_states):
+    # handle "all" checkbox"
+    if ctx.triggered_id == 'all-train':
+        checked_states = [all_checked] * len(checked_states)
+    # handled individual check boxes
+    all_checked_states = all(checked_states)
+    indeterminate = any(checked_states) and not all_checked_states
+    return all_checked_states, indeterminate, checked_states
+
+@callback(
+    Output("all-bus", "checked"),
+    Output("all-bus", "indeterminate"),
+    Output({"type": "bus-item", "index": ALL}, "checked"),
+    Input("all-bus", "checked"),
+    Input({"type": "bus-item", "index": ALL}, "checked"),
+    prevent_initial_callback=True
+)
+def update_main_checkbox(all_checked, checked_states):
+    # handle "all" checkbox"
+    if ctx.triggered_id == 'all-bus':
+        checked_states = [all_checked] * len(checked_states)
+    # handled individual check boxes
+    all_checked_states = all(checked_states)
+    indeterminate = any(checked_states) and not all_checked_states
+    return all_checked_states, indeterminate, checked_states
+
+@callback(
+    Output("all-bike", "checked"),
+    Output("all-bike", "indeterminate"),
+    Output({"type": "bike-item", "index": ALL}, "checked"),
+    Input("all-bike", "checked"),
+    Input({"type": "bike-item", "index": ALL}, "checked"),
+    prevent_initial_callback=True
+)
+def update_main_checkbox(all_checked, checked_states):
+    # handle "all" checkbox"
+    if ctx.triggered_id == 'all-bike':
+        checked_states = [all_checked] * len(checked_states)
+    # handled individual check boxes
+    all_checked_states = all(checked_states)
+    indeterminate = any(checked_states) and not all_checked_states
+    return all_checked_states, indeterminate, checked_states
 
 # Update the callback to display the hovered feature's information, including CUSEC
 @callback(Output("info", "children"), Input("geojson", "hoverData"))
