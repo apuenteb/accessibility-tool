@@ -5,7 +5,28 @@ import dash_mantine_components as dmc
 import dash_leaflet as dl
 from dash_extensions.javascript import assign
 
-# Inline JavaScript for styles
+def get_info(feature=None):
+    header = [html.H4("Demographic data")]
+    if not feature:
+        return header + [html.P("Hover over a building")]
+    
+    # Extract properties from the feature
+    municipio = feature["properties"].get("Municipio", "Unknown")
+    density_str = feature["properties"].get("density", "N/A")
+    
+    # Display the information including Municipio and density as strings
+    return header + [
+        html.B(feature["properties"]["Municipio"]), html.Br(),
+        f"Density: {density_str} people / mi²", html.Br(),
+        html.B("CUSEC: "), feature["properties"].get("CUSEC", "N/A"), html.Br(),
+        html.B("Municipio: "), municipio  # Add Municipio here
+    ]
+
+# Create info control.
+info = html.Div(children=get_info(), id="info", className="info",
+                style={"position": "absolute", "top": "10px", "right": "10px", "zIndex": "1000"})
+
+# Inline JavaScript for styles when hovering over polygons
 visual_style = assign("""
     function(feature) {
         return {
@@ -29,7 +50,7 @@ highlight_style = assign("""
     }
 """)
 
-# Inline JavaScript for interaction
+# Inline JavaScript for hover interaction
 on_each_feature = assign("""
     function(feature, layer) {
         // Reference to highlighted layers
@@ -92,10 +113,7 @@ app.layout = html.Div(
     [
         dl.Map(
             [
-                dl.TileLayer(
-                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-                    maxZoom=19,
-                ),
+                dl.TileLayer(url='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', maxZoom=20),
                 dl.GeoJSON(
                     id="geojson",
                     url="/assets/buildings_by_section.geojson",  # Replace with your actual endpoint
@@ -153,6 +171,7 @@ app.layout = html.Div(
             "width": "250px",
         },
     ),
+    info
     ]
 )
 
@@ -192,6 +211,11 @@ def update_map(checked_states):
 
             map_points.extend(layer_points)
     return map_points
+
+# Update the callback to display the hovered feature's information, including CUSEC
+@callback(Output("info", "children"), Input("geojson", "hoverData"))
+def info_hover(feature):
+    return get_info(feature)
 
 if __name__ == "__main__":
     app.run_server(debug=True)
