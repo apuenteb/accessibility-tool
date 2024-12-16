@@ -357,4 +357,3 @@ def info_hover(feature):
 
 if __name__ == "__main__":
     app.run_server(debug=True)
-
