@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import dash_leaflet as dl
 from dash_extensions.javascript import assign
+import json
 
 def get_info(feature=None):
     header = [html.H4("Demographic data")]
@@ -102,10 +103,17 @@ _dash_renderer._set_react_version("18.2.0")
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
 server = app.server
 
-# Example points for each layer
+# Load POI GeoJSON files
+with open("assets/filtered-centros-educativos.geojson", "r") as f:
+    schools_geojson = json.load(f)
+
+with open("assets/filtered-bibliotecas.geojson", "r") as f:
+    libraries_geojson = json.load(f)
+
+# Create a dictionary to map checkboxes to GeoJSON data
 educational_layers = [
-    {"id": "schools", "label": "Schools", "checked": False, "points": [[51.505, -0.09], [51.51, -0.08]]},
-    {"id": "libraries", "label": "Libraries", "checked": False, "points": [[51.515, -0.07], [51.52, -0.06]]},
+    {"label": "Schools", "geojson": schools_geojson, "checked": False},
+    {"label": "Bibliotecas", "geojson": libraries_geojson, "checked": False},
 ]
 
 # Layout
@@ -199,18 +207,24 @@ def update_educational_checkbox(all_checked, checked_states):
     Input({"type": "educational-item", "index": ALL}, "checked"),
 )
 def update_map(checked_states):
-    # Add points to the map based on checked layers
     map_points = []
     for i, is_checked in enumerate(checked_states):
         if is_checked:
-            layer = educational_layers[i]
-            layer_points = [
-                dl.Marker(position=point, children=[dl.Popup(layer["label"])])
-                for point in layer["points"]
-            ]
-
-            map_points.extend(layer_points)
+            layer = educational_layers[i]  # Access the layer directly
+            for feature in layer["geojson"]["features"]:
+                # Check if coordinates are valid (latitude and longitude are not null)
+                coordinates = feature.get("geometry", {}).get("coordinates", None)
+                if coordinates and len(coordinates) >= 2:
+                    lon, lat = coordinates  # Coordinates are [longitude, latitude]
+                    if lat is not None and lon is not None:
+                        map_points.append(
+                            dl.Marker(
+                                position=[lat, lon],  # Use [lat, lon] in the correct order
+                                children=[dl.Popup(layer["label"])]
+                            )
+                        )
     return map_points
+
 
 # Update the callback to display the hovered feature's information, including CUSEC
 @callback(Output("info", "children"), Input("geojson", "hoverData"))
