@@ -113,7 +113,7 @@ with open("assets/filtered-bibliotecas.geojson", "r") as f:
 # Dictionaries by POI categories
 educational_layers = [
     {"label": "Schools", "geojson": schools_geojson, "checked": False},
-    {"label": "Bibliotecas", "geojson": libraries_geojson, "checked": False},
+    {"label": "Public libraries", "geojson": libraries_geojson, "checked": False},
 ]
 
 train_layers = [
