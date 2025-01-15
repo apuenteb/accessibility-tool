@@ -54,40 +54,46 @@ highlight_style = assign("""
 # Inline JavaScript for hover interaction
 on_each_feature = assign("""
     function(feature, layer) {
-        // Reference to highlighted layers
-        let highlightedLayers = [];
-
         // Mouseover event
         layer.on('mouseover', function() {
             const CUSEC = feature.properties['CUSEC'];
-            
+
             // Highlight all polygons with the same CUSEC
             this._map.eachLayer((otherLayer) => {
                 if (otherLayer.feature && otherLayer.feature.properties['CUSEC'] === CUSEC) {
+                    if (!otherLayer.options._originalStyle) {
+                        // Save the original style if not already saved
+                        otherLayer.options._originalStyle = {
+                            color: otherLayer.options.color,
+                            weight: otherLayer.options.weight,
+                            opacity: otherLayer.options.opacity,
+                            fillColor: otherLayer.options.fillColor,
+                            fillOpacity: otherLayer.options.fillOpacity,
+                        };
+                    }
                     otherLayer.setStyle({
                         color: '#2b5775',
                         weight: 3,
                         opacity: 1,
                         fillOpacity: 0.7
                     });
-                    highlightedLayers.push(otherLayer);
                 }
             });
         });
 
         // Mouseout event
         layer.on('mouseout', function() {
-            // Reset the style of all highlighted layers
-            highlightedLayers.forEach((hlLayer) => {
-                hlLayer.setStyle({
-                    color: '#3182bd',
-                    weight: 2,
-                    opacity: 0.8,
-                    fillColor: feature.properties.color || '#6baed6',
-                    fillOpacity: 0.4
-                });
+            const CUSEC = feature.properties['CUSEC'];
+
+            // Reset the style of all polygons with the same CUSEC
+            this._map.eachLayer((otherLayer) => {
+                if (otherLayer.feature && otherLayer.feature.properties['CUSEC'] === CUSEC) {
+                    const originalStyle = otherLayer.options._originalStyle;
+                    if (originalStyle) {
+                        otherLayer.setStyle(originalStyle);
+                    }
+                }
             });
-            highlightedLayers = [];
         });
 
         // Tooltip
@@ -110,10 +116,14 @@ with open("assets/filtered-centros-educativos.geojson", "r") as f:
 with open("assets/filtered-bibliotecas.geojson", "r") as f:
     libraries_geojson = json.load(f)
 
+with open("assets/hospitales.geojson", "r") as f:
+    hospitals_geojson = json.load(f)
+
 # Dictionaries by POI categories
 educational_layers = [
     {"label": "Schools", "geojson": schools_geojson, "checked": False},
     {"label": "Public libraries", "geojson": libraries_geojson, "checked": False},
+    {"label": "Hospitals", "geojson": hospitals_geojson, "checked": False},
 ]
 
 train_layers = [
@@ -245,7 +255,7 @@ app.layout = html.Div(
                 dl.TileLayer(url='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', maxZoom=20),
                 dl.GeoJSON(
                     id="geojson",
-                    url="/assets/hospital_with_colors_bike.geojson",  # Replace with your actual endpoint
+                    url="/assets/buildings_color.geojson",  # Replace with your actual endpoint
                     options=dict(style=visual_style, onEachFeature=on_each_feature),
                 ),
                 dl.LayerGroup(id="map-points"),
