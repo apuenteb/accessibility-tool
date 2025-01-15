@@ -255,7 +255,7 @@ app.layout = html.Div(
                 dl.TileLayer(url='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', maxZoom=20),
                 dl.GeoJSON(
                     id="geojson",
-                    url="/assets/buildings_color.geojson",  # Replace with your actual endpoint
+                    url="/assets/hospital_with_colors_bike.geojson",  # Replace with your actual endpoint
                     options=dict(style=visual_style, onEachFeature=on_each_feature),
                 ),
                 dl.LayerGroup(id="map-points"),
