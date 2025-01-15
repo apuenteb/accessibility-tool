@@ -1,48 +1,120 @@
 import dash
-from dash import html, dcc
-from dash.dependencies import Input, Output
+from dash import html, Input, Output, ALL, callback, ctx, _dash_renderer
+import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 import dash_leaflet as dl
+from dash import dcc
+from dash_extensions.javascript import assign
 import json
 
-# Initialize the Dash app
-app = dash.Dash(__name__)
+visual_style = assign("""
+    function(feature) {
+        return {
+            color: '#3182bd',
+            weight: 2,
+            opacity: 0.8,
+            fillColor: feature.properties.color || '#6baed6',
+            fillOpacity: 0.4
+        };
+    }
+""")
 
-# Load GeoJSON data
-with open("assets/filtered-centros-educativos.geojson", "r") as f:
-    schools_geojson = json.load(f)
+# Inline JavaScript to fetch CSV based on selection
+load_data_script = assign("""
+    function(selectedOption) {
+        const urlMap = {
+            "Hospitals": '/assets/hospitals.csv',
+            "Schools": '/assets/schools.csv',
+            "Libraries": '/assets/libraries.csv'
+        };
+        
+        const url = urlMap[selectedOption];
+        if (url) {
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    const features = parseCSVToGeoJSON(data);
+                    const geojsonData = {
+                        type: "FeatureCollection",
+                        features: features
+                    };
+                    return geojsonData;
+                });
+        }
+        
+        // Helper function to parse CSV into GeoJSON format
+        function parseCSVToGeoJSON(csvData) {
+            const rows = csvData.split("\\n");
+            const features = rows.slice(1).map(row => {
+                const cols = row.split(",");
+                return {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [parseFloat(cols[1]), parseFloat(cols[2])]  // lon, lat
+                    },
+                    properties: {
+                        Referencia: cols[0],
+                        nearest_poi: cols[6],
+                        nearest_node: cols[3],
+                        time_to_nearest_poi: cols[4],
+                        distance_to_nearest_poi: cols[8]
+                    }
+                };
+            });
+            return features;
+        }
+    }
+""")
 
-with open("assets/filtered-bibliotecas.geojson", "r") as f:
-    libraries_geojson = json.load(f)
-
-# Create a dictionary to map checkboxes to GeoJSON data
-layers = {
-    "Schools": schools_geojson,
-    "Bibliotecas": libraries_geojson,
-}
+# Dash app
+_dash_renderer._set_react_version("18.2.0")
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
+server = app.server
 
 # Layout
-app.layout = html.Div([
-    dcc.Checklist(
-        id="layer-checklist",
-        options=[{"label": name, "value": name} for name in layers.keys()],
-        value=[],  # Start with no layers selected
-        inline=True
-    ),
-    dl.Map([
-        dl.TileLayer(),
-        dl.LayerGroup(id="layer-group")  # Placeholder for dynamic layers
-    ], center=(43.3, -2.0), zoom=11, style={"height": "80vh", "width": "100%"}),
-])
-
-# Callback to update map layers
-@app.callback(
-    Output("layer-group", "children"),
-    Input("layer-checklist", "value")
+app.layout = dmc.MantineProvider(  # Wrap the layout with MantineProvider
+    children=html.Div(
+        [
+            dl.Map(
+                [
+                    dl.TileLayer(url='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', maxZoom=20),
+                    dl.GeoJSON(id="geojson", options=dict(style=visual_style)),
+                    dl.LayerGroup(id="map-points"),
+                ],
+                center=[43.3, -2.0],
+                zoom=11,
+                style={"height": "100vh", "width": "100%"},
+            ),
+            dmc.Select(
+                id="poi-selector",
+                label="Select POI category",
+                data=["Hospitals", "Schools", "Libraries"],
+                value="Hospitals"
+            ),
+            # Store to pass the selected POI category
+            dcc.Store(id="store-selected-option")
+        ]
+    )
 )
-def update_layers(selected_layers):
-    # Generate a list of GeoJSON layers for selected checkboxes
-    return [dl.GeoJSON(data=layers[layer], id=f"{layer.lower()}-layer") for layer in selected_layers]   
 
-# Run the app
+# Callback to update store with the selected value
+@app.callback(
+    Output("store-selected-option", "data"),
+    Input("poi-selector", "value")
+)
+def update_store(selected_option):
+    return {"selected_option": selected_option}
+
+# Callback to update the GeoJSON layer based on selection
+@app.callback(
+    Output("geojson", "data"),
+    Input("store-selected-option", "data")
+)
+def update_map(selected_option_data):
+    selected_option = selected_option_data["selected_option"]
+    return load_data_script(selected_option)  # Call the javascript function
+
 if __name__ == "__main__":
     app.run_server(debug=True)
+
