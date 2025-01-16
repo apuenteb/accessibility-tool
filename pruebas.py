@@ -27,15 +27,13 @@ def get_info(feature=None):
 info = html.Div(children=get_info(), id="info", className="info",
                 style={"position": "absolute", "top": "10px", "right": "10px", "zIndex": "1000"})
 
-
-# Inline JavaScript for styles when hovering over polygons
 visual_style = assign("""
     function(feature) {
         return {
             color: '#3182bd',
             weight: 2,
             opacity: 0.8,
-            fillColor: feature.properties.color || '#6baed6',
+            fillColor: feature.properties.color||'#6baed6',
             fillOpacity: 0.4
         };
     }

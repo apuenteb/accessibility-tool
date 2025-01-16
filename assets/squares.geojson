@@ -1,0 +1,25 @@
+{
+    "type": "FeatureCollection",
+    "name": "buildings_color",
+    "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+    "features": [
+    { "type": "Feature", "properties": { "Referencia": "8594095", "CUSEC": "2006907027", "CUMUN": "20069", "Seccion": "027", "Distrito": "07", "CUDIS": "2006907", "Municipio": "Donostia/San Sebastián", "color": null }, "geometry": { "type": "MultiPolygon", "coordinates": [
+          [
+            [-2.500000, 43.000000],
+            [-2.450000, 43.000000],
+            [-2.450000, 43.050000],
+            [-2.500000, 43.050000],
+            [-2.500000, 43.000000]
+          ]
+        ] } },
+    { "type": "Feature", "properties": { "Referencia": "8594099", "CUSEC": "2006907027", "CUMUN": "20069", "Seccion": "027", "Distrito": "07", "CUDIS": "2006907", "Municipio": "Donostia/San Sebastián", "color": null }, "geometry": { "type": "MultiPolygon", "coordinates": [
+          [
+            [-2.480000, 42.980000],
+            [-2.430000, 42.980000],
+            [-2.430000, 43.030000],
+            [-2.480000, 43.030000],
+            [-2.480000, 42.980000]
+          ]
+        ] } }]
+    }
+    
