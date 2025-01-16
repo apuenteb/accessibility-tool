@@ -1,12 +1,11 @@
 window.dashExtensions = Object.assign({}, window.dashExtensions, {
     default: {
         function0: function(feature) {
-                const choice = "{choice}";
                 return {
                     color: '#3182bd',
                     weight: 2,
                     opacity: 0.8,
-                    fillColor: feature.properties["color"] || '#6baed6',
+                    fillColor: feature.properties.color || '#6baed6',
                     fillOpacity: 0.4
                 };
             }
