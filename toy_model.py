@@ -27,16 +27,16 @@ def get_info(feature=None):
 info = html.Div(children=get_info(), id="info", className="info",
                 style={"position": "absolute", "top": "10px", "right": "10px", "zIndex": "1000"})
 
-visual_style = assign("""
-    function(feature) {
-        return {
+visual_style = assign(f"""
+    function(feature) {{
+        return {{
             color: '#3182bd',
             weight: 2,
             opacity: 0.8,
-            fillColor: feature.properties.color||'#6baed6',
+            fillColor: '#6baed6',
             fillOpacity: 0.4
-        };
-    }
+        }};
+    }}
 """)
 
 highlight_style = assign("""
@@ -281,6 +281,27 @@ def update_main_checkbox(all_checked, checked_states):
     if ctx.triggered_id == 'all-educational':
         checked_states = [all_checked] * len(checked_states)
     # handled individual check boxes
+
+    if checked_states[2]:
+        hospital = True  # Update the hospital state
+        columna = 'color' if hospital else None
+        fill_color_logic = f"feature.properties['{columna}'] || '#6baed6'" if columna else "'#6baed6'"
+        visual_style_string = f"""
+            function(feature) {{
+                return {{
+                    color: '#3182bd',
+                    weight: 2,
+                    opacity: 0.8,
+                    fillColor: {fill_color_logic},
+                    fillOpacity: 0.4
+                }};
+            }}
+        """
+        return assign(visual_style_string)
+    
+    else:
+        hospital=False
+
     all_checked_states = all(checked_states)
     indeterminate = any(checked_states) and not all_checked_states
     return all_checked_states, indeterminate, checked_states
