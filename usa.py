@@ -1,43 +1,83 @@
-from dash import html
+from dash import Dash, html
 import dash_leaflet as dl
-from dash import Dash
-from dash.dependencies import Output, Input
 from dash_extensions.javascript import assign
-import geopandas as gpd
 import json
-from dash import dash_table
 
-# JavaScript function for styling
-style_handle = assign("""function(feature, context){
-    const match = context.props.hideout && context.props.hideout.properties.name === feature.properties.name;
-    if(match) return {weight: 5, color: '#666', dashArray: ''};
-    return {color: '#3388ff', weight: 2, fillOpacity: 0.6};  // Default styling
-}""")
+# Inline JavaScript for styling
+visual_style = assign("""
+    function(feature) {
+        return {
+            color: '#3182bd',
+            weight: 2,
+            opacity: 0.8,
+            fillColor: '#6baed6',
+            fillOpacity: 0.4
+        };
+    }
+""")
 
-#https://gist.github.com/incubated-geek-cc/5da3adbb2a1602abd8cf18d91016d451?short_path=2de7e44
-us_states_gdf = gpd.read_file("./assets/states.geojson")
-us_states_geojson = json.loads(us_states_gdf.to_json())
+# Inline JavaScript for hover and click interaction
+on_each_feature = assign("""
+    function(feature, layer) {
+        // Tooltip with state name
+        layer.bindTooltip(`<strong>${feature.properties['NAME']}</strong>`, {sticky: true});
 
-# Create example app
+        // Mouseover event to highlight the state
+        layer.on('mouseover', function() {
+            layer.setStyle({
+                color: '#ff7800',
+                weight: 5,
+                fillOpacity: 0.9
+            });
+        });
+
+        // Mouseout event to reset style
+        layer.on('mouseout', function() {
+            layer.setStyle({
+                color: '#3182bd',
+                weight: 2,
+                opacity: 0.8,
+                fillColor: '#6baed6',
+                fillOpacity: 0.4
+            });
+        });
+
+        // Click event to log the state name and update style
+        layer.on('click', function() {
+            layer.setStyle({
+                color: '#ff7800',   // Highlight clicked state
+                weight: 5,
+                fillOpacity: 0.9
+            });
+            console.log('Clicked state: ' + feature.properties['NAME']);
+            
+            // You can add additional actions like updating a Dash component or showing a message
+            alert('You clicked on ' + feature.properties['NAME']);
+        });
+    }
+""")
+
+# Load US states GeoJSON data
+with open("./assets/states.geojson") as f:
+    us_states_geojson = json.load(f)
+
+# Create Dash app
 app = Dash(__name__)
+
 app.layout = html.Div([
-    dl.Map(center=[39, -98], zoom=4, children=[
+    dl.Map([
         dl.TileLayer(),
         dl.GeoJSON(
-            id="states",
+            id="states-layer",
             data=us_states_geojson,
+            options=dict(style=visual_style, onEachFeature=on_each_feature),
         )
-    ], style={'width': '100%', 'height': '50vh', 'margin': "auto", "display": "block"}, id="map"),
-    html.Div(id='state-container', children=[]),  #
-    dash_table.DataTable(id='state-table', columns=[{"name": i, "id": i} for i in ["state"]], data=[])
+    ], 
+    style={'width': '100%', 'height': '100vh'},
+    center=[39, -98],  # Center on the US
+    zoom=4,             # Zoom level
+    ),
 ])
 
-# Update the feature saved on the hideout prop on click
-app.clientside_callback(
-    "function(feature){return feature}", 
-    Output("states", "hideout"), 
-    [Input("states", "click_feature")]
-)
-
-if __name__ == '__main__':
-    app.run_server()
+if __name__ == "__main__":
+    app.run_server(debug=True)
