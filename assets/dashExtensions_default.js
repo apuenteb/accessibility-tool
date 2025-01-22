@@ -1,11 +1,12 @@
 window.dashExtensions = Object.assign({}, window.dashExtensions, {
     default: {
         function0: function(feature) {
+                const isClicked = feature.properties.clicked || false;
                 return {
                     color: '#3182bd',
                     weight: 2,
                     opacity: 0.8,
-                    fillColor: '#6baed6',
+                    fillColor: isClicked ? '#ff0000' : '#6baed6',
                     fillOpacity: 0.4
                 };
             }
@@ -32,22 +33,20 @@ window.dashExtensions = Object.assign({}, window.dashExtensions, {
                     color: '#3182bd',
                     weight: 2,
                     opacity: 0.8,
-                    fillColor: '#6baed6',
+                    fillColor: feature.properties.clicked ? '#ff0000' : '#6baed6',
                     fillOpacity: 0.4
                 });
             });
 
-            // Click event to log the state name and update style
+            // Click event to change fillColor to red and log the state name
             layer.on('click', function() {
+                feature.properties.clicked = !feature.properties.clicked; // Toggle clicked state
                 layer.setStyle({
-                    color: '#ff7800', // Highlight clicked state
+                    fillColor: feature.properties.clicked ? '#ff0000' : '#6baed6', // Toggle color
                     weight: 5,
                     fillOpacity: 0.9
                 });
                 console.log('Clicked state: ' + feature.properties['NAME']);
-
-                // You can add additional actions like updating a Dash component or showing a message
-                alert('You clicked on ' + feature.properties['NAME']);
             });
         }
 

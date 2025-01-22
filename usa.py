@@ -3,14 +3,15 @@ import dash_leaflet as dl
 from dash_extensions.javascript import assign
 import json
 
-# Inline JavaScript for styling
+# Inline JavaScript for styling with dynamic clicked state
 visual_style = assign("""
     function(feature) {
+        const isClicked = feature.properties.clicked || false;
         return {
             color: '#3182bd',
             weight: 2,
             opacity: 0.8,
-            fillColor: '#6baed6',
+            fillColor: isClicked ? '#ff0000' : '#6baed6',
             fillOpacity: 0.4
         };
     }
@@ -37,22 +38,20 @@ on_each_feature = assign("""
                 color: '#3182bd',
                 weight: 2,
                 opacity: 0.8,
-                fillColor: '#6baed6',
+                fillColor: feature.properties.clicked ? '#ff0000' : '#6baed6',
                 fillOpacity: 0.4
             });
         });
 
-        // Click event to log the state name and update style
+        // Click event to change fillColor to red and log the state name
         layer.on('click', function() {
+            feature.properties.clicked = !feature.properties.clicked; // Toggle clicked state
             layer.setStyle({
-                color: '#ff7800',   // Highlight clicked state
+                fillColor: feature.properties.clicked ? '#ff0000' : '#6baed6', // Toggle color
                 weight: 5,
                 fillOpacity: 0.9
             });
             console.log('Clicked state: ' + feature.properties['NAME']);
-            
-            // You can add additional actions like updating a Dash component or showing a message
-            alert('You clicked on ' + feature.properties['NAME']);
         });
     }
 """)
@@ -60,6 +59,10 @@ on_each_feature = assign("""
 # Load US states GeoJSON data
 with open("./assets/states.geojson") as f:
     us_states_geojson = json.load(f)
+
+# Initialize clicked state for each feature
+for feature in us_states_geojson['features']:
+    feature['properties']['clicked'] = False  # Add a 'clicked' property
 
 # Create Dash app
 app = Dash(__name__)
@@ -72,7 +75,7 @@ app.layout = html.Div([
             data=us_states_geojson,
             options=dict(style=visual_style, onEachFeature=on_each_feature),
         )
-    ], 
+    ],
     style={'width': '100%', 'height': '100vh'},
     center=[39, -98],  # Center on the US
     zoom=4,             # Zoom level
@@ -81,3 +84,4 @@ app.layout = html.Div([
 
 if __name__ == "__main__":
     app.run_server(debug=True)
+
