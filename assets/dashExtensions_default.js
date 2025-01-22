@@ -2,11 +2,12 @@ window.dashExtensions = Object.assign({}, window.dashExtensions, {
     default: {
         function0: function(feature) {
                 const isClicked = feature.properties.clicked || false;
+                const selectedColor = feature.properties.selectedColor || '#6baed6'; // Default color
                 return {
                     color: '#3182bd',
                     weight: 2,
                     opacity: 0.8,
-                    fillColor: isClicked ? '#ff0000' : '#6baed6',
+                    fillColor: isClicked ? '#ff0000' : selectedColor,
                     fillOpacity: 0.4
                 };
             }
@@ -33,7 +34,7 @@ window.dashExtensions = Object.assign({}, window.dashExtensions, {
                     color: '#3182bd',
                     weight: 2,
                     opacity: 0.8,
-                    fillColor: feature.properties.clicked ? '#ff0000' : '#6baed6',
+                    fillColor: feature.properties.selectedColor || '#6baed6', // Default fill color
                     fillOpacity: 0.4
                 });
             });
@@ -42,7 +43,7 @@ window.dashExtensions = Object.assign({}, window.dashExtensions, {
             layer.on('click', function() {
                 feature.properties.clicked = !feature.properties.clicked; // Toggle clicked state
                 layer.setStyle({
-                    fillColor: feature.properties.clicked ? '#ff0000' : '#6baed6', // Toggle color
+                    fillColor: feature.properties.clicked ? '#ff0000' : feature.properties.selectedColor, // Toggle color
                     weight: 5,
                     fillOpacity: 0.9
                 });
