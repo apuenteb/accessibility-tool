@@ -10,7 +10,6 @@ import dash_mantine_components as dmc  # For advanced styling
 # Inline JavaScript for styling with dynamic clicked state
 visual_style = assign(""" 
     function(feature) {
-        const isClicked = feature.properties.clicked || false;
         const selectedColor = feature.properties.selectedColor || '#6baed6'; // Default color (blue)
         return {
             color: '#3182bd',
