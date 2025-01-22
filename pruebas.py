@@ -271,6 +271,10 @@ poi_menu = html.Div(
                 ),
                 title="Eat",
                 item_id="eatery",
+                style={  # Apply style here
+                    "maxHeight": "150px",  # Adjust as needed
+                    "overflowY": "auto",  # Scrollbar only when necessary
+                },
             ),
             # Errands Section
             dbc.AccordionItem(
@@ -345,6 +349,10 @@ poi_menu = html.Div(
                 ),
                 title="Errands",
                 item_id="errands",
+                style={  # Apply style here
+                    "maxHeight": "150px",  # Adjust as needed
+                    "overflowY": "auto",  # Scrollbar only when necessary
+                },
             ),
             # Lodging Section
             dbc.AccordionItem(
@@ -367,6 +375,10 @@ poi_menu = html.Div(
                 ),
                 title="Lodging",
                 item_id="lodging",
+                style={  # Apply style here
+                    "maxHeight": "150px",  # Adjust as needed
+                    "overflowY": "auto",  # Scrollbar only when necessary
+                },
             ),
             # Shop Section
             dbc.AccordionItem(
@@ -415,6 +427,10 @@ poi_menu = html.Div(
                 ),
                 title="Shop",
                 item_id="shop",
+                style={  # Apply style here
+                    "maxHeight": "150px",  # Adjust as needed
+                    "overflowY": "auto",  # Scrollbar only when necessary
+                },
             ),
             # Recreation Section
             dbc.AccordionItem(
@@ -463,6 +479,10 @@ poi_menu = html.Div(
                 ),
                 title="Recreation",
                 item_id="recreation",
+                style={  # Apply style here
+                    "maxHeight": "150px",  # Adjust as needed
+                    "overflowY": "auto",  # Scrollbar only when necessary
+                },
             ),
             # Transport Section
             dbc.AccordionItem(
@@ -511,6 +531,10 @@ poi_menu = html.Div(
                 ),
                 title="Transport",
                 item_id="transport",
+                style={  # Apply style here
+                    "maxHeight": "150px",  # Adjust as needed
+                    "overflowY": "auto",  # Scrollbar only when necessary
+                },
             ),
             # Errands Section
             dbc.AccordionItem(
@@ -533,6 +557,10 @@ poi_menu = html.Div(
                 ),
                 title="Others",
                 item_id="others",
+                style={  # Apply style here
+                    "maxHeight": "150px",  # Adjust as needed
+                    "overflowY": "auto",  # Scrollbar only when necessary
+                },
             ),
         ],
         id="accordion",
@@ -547,7 +575,7 @@ poi_menu = html.Div(
         "padding": "10px",
         "borderRadius": "5px",
         "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
-        "width": "250px",
+        "width": "320px",
     },
 )
 
