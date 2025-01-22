@@ -27,13 +27,14 @@ def get_info(feature=None):
 info = html.Div(children=get_info(), id="info", className="info",
                 style={"position": "absolute", "top": "10px", "right": "10px", "zIndex": "1000"})
 
-visual_style = assign("""
+visual_style = assign(""" 
     function(feature) {
+        const selectedColor = feature.properties.selectedColor || '#6baed6'; // Default color (blue)
         return {
             color: '#3182bd',
             weight: 2,
             opacity: 0.8,
-            fillColor: feature.properties.color||'#6baed6',
+            fillColor: selectedColor,
             fillOpacity: 0.4
         };
     }
@@ -108,6 +109,14 @@ _dash_renderer._set_react_version("18.2.0")
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
 server = app.server
 
+# Load geojson polygons
+with open("assets/hospital_with_colors.geojson", "r") as f:
+    geojson = json.load(f)
+
+# Set the initial selected color to blue (default)
+for feature in geojson['features']:
+    feature['properties']['selectedColor'] = '#6baed6'  # Default color (blue)
+
 # Load POI GeoJSON files
 with open("assets/filtered-centros-educativos.geojson", "r") as f:
     schools_geojson = json.load(f)
@@ -120,9 +129,9 @@ with open("assets/hospitales.geojson", "r") as f:
 
 # Dictionaries by POI categories
 educational_layers = [
-    {"label": "Schools", "geojson": schools_geojson, "checked": False},
-    {"label": "Public libraries", "geojson": libraries_geojson, "checked": False},
-    {"label": "Hospitals", "geojson": hospitals_geojson, "checked": False},
+    {"label": "Schools", "value": "color_1", "geojson": schools_geojson, "checked": False},
+    {"label": "Public libraries", "value": "color_2", "geojson": libraries_geojson, "checked": False},
+    {"label": "Hospitals", "value": "color_3","geojson": hospitals_geojson, "checked": False},
 ]
 
 train_layers = [
@@ -253,8 +262,8 @@ app.layout = html.Div(
             [
                 dl.TileLayer(url='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', maxZoom=20),
                 dl.GeoJSON(
-                    id="geojson",
-                    url="/assets/hospital_with_colors_bike.geojson",  # Replace with your actual endpoint
+                    id="geojson-layer",
+                    data=geojson,  # Replace with your actual endpoint
                     options=dict(style=visual_style, onEachFeature=on_each_feature),
                 ),
                 dl.LayerGroup(id="map-points"),
@@ -360,9 +369,38 @@ def update_main_checkbox_bike(all_checked, checked_states):
     return all_checked_states, indeterminate, checked_states
 
 # Update the callback to display the hovered feature's information, including CUSEC
-@callback(Output("info", "children"), Input("geojson", "hoverData"))
+@callback(Output("info", "children"), Input("geojson-layer", "hoverData"))
 def info_hover(feature):
     return get_info(feature)
+
+@app.callback(
+    Output('geojson-layer', 'data'),
+    [Input({"type": "educational-item", "index": ALL}, "checked")]  # Listen for changes in the checked state of the color checkboxes
+)
+def update_color(checked_values):
+    # Update the selected colors based on checkbox input (checked state)
+    selected_colors = []
+
+    # Iterate over the checked values to gather the selected colors
+    for idx, checked in enumerate(checked_values):
+        if checked:  # If the checkbox is checked
+            selected_colors.append(educational_layers[idx]["value"])  # Get the value of the selected color
+
+    # Update the GeoJSON based on the selected colors
+    for feature in geojson['features']:
+        if selected_colors:
+            # Assign a color based on the selected colors
+            if 'color_1' in selected_colors:
+                feature['properties']['selectedColor'] = feature['properties']['color_1']  # Use color_1 from GeoJSON
+            elif 'color_2' in selected_colors:
+                feature['properties']['selectedColor'] = feature['properties']['color_2']  # Use color_2 from GeoJSON
+            elif 'color_3' in selected_colors:
+                feature['properties']['selectedColor'] = '#0000ff'  # Example: blue for color_3
+        else:
+            # If no colors are selected, revert to the default color (blue)
+            feature['properties']['selectedColor'] = '#6baed6'  # Default to blue
+
+    return geojson  # Return the updated GeoJSON data
 
 if __name__ == "__main__":
     app.run_server(debug=True)
