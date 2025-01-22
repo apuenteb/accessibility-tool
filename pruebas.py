@@ -128,10 +128,108 @@ with open("assets/hospitales.geojson", "r") as f:
     hospitals_geojson = json.load(f)
 
 # Dictionaries by POI categories
-educational_layers = [
-    {"label": "Schools", "value": "color_1", "geojson": schools_geojson, "checked": False},
-    {"label": "Public libraries", "value": "color_2", "geojson": libraries_geojson, "checked": False},
-    {"label": "Hospitals", "value": "color_3","geojson": hospitals_geojson, "checked": False},
+eat_layers = [
+    {"label": "Special Food Services", "value": "color_1", "geojson": schools_geojson, "checked": False},
+    {"label": "Restaurants", "value": "color_2", "geojson": libraries_geojson, "checked": False},
+    {"label": "Cafes & bakeries", "value": "color_3","geojson": hospitals_geojson, "checked": False},
+    {"label": "Bars", "value": "color_4","geojson": hospitals_geojson, "checked": False},
+]
+
+healthcare_layers = [
+    {"label": "Clinics & local healthcare centers", "checked": False},
+    {"label": "Hospitals", "checked": False},
+    {"label": "Nursing & Residential Care", "checked": False},
+    {"label": "Dentists", "checked": False},
+    {"label": "Psychologist", "checked": False},
+]
+
+leisure_layers = [
+    {"label": "Hairdresser & Barbery", "checked": False},
+    {"label": "Personal Wellness", "checked": False},
+]
+
+professional_layers = [
+    {"label": "Administrative and Support Services", "checked": False},
+    {"label": "Finance", "checked": False},
+    {"label": "Insurance Agency", "checked": False},
+    {"label": "Management of Companies", "checked": False},
+    {"label": "Professional Services", "checked": False},
+    {"label": "Real Estate", "checked": False},
+    {"label": "Travel Agency", "checked": False},
+]
+
+pharmacy_layers = [
+    {"label": "Pharmacy", "checked": False},
+]
+
+service_layers = [
+    {"label": "Car Rental", "checked": False},
+    {"label": "Car Repair", "checked": False},
+    {"label": "Death Care Services", "checked": False},
+    {"label": "Fuel Station", "checked": False},
+    {"label": "Laundry", "checked": False},
+    {"label": "Locksmith Errands", "checked": False},
+    {"label": "Moving Company", "checked": False},
+    {"label": "Parking", "checked": False},
+    {"label": "Post Office", "checked": False},
+    {"label": "Storage", "checked": False},
+    {"label": "Veterinary Services", "checked": False},
+    {"label": "Waste Management", "checked": False},
+]
+
+hotel_layers = [
+    {"label": "Hotel and Lodging", "checked": False},
+]
+
+consumergoods_layers = [
+    {"label": "Book Store", "checked": False},
+    {"label": "Clothing Store", "checked": False},
+    {"label": "Cosmetics Retail", "checked": False},
+    {"label": "Department Store", "checked": False},
+    {"label": "Florist", "checked": False},
+    {"label": "Gift and Souvenir", "checked": False},
+    {"label": "Hobby Retailers", "checked": False},
+    {"label": "Jewelry Stores", "checked": False},
+    {"label": "Optical Goods", "checked": False},
+    {"label": "Pet Store", "checked": False},
+    {"label": "Shoe Store", "checked": False},
+    {"label": "Used Merchandise", "checked": False},
+    {"label": "Warehouse", "checked": False},
+]
+
+durablegoods_layers = [
+    {"label": "Car Dealer", "checked": False},
+    {"label": "Home Goods Store", "checked": False},
+    {"label": "Wholesale Trade", "checked": False},
+]
+
+grocery_layers = [
+    {"label": "Convenience Corner Store", "checked": False},
+    {"label": "Grocery or Supermarket", "checked": False},
+    {"label": "Liquor Store", "checked": False},
+    {"label": "Specialty Food Retailers", "checked": False},
+]
+
+cultural_layers = [
+    {"label": "Art Gallery", "checked": False},
+    {"label": "Library", "checked": False},
+    {"label": "Museum", "checked": False},
+]
+
+entertainment_layers = [
+    {"label": "Amusement Park", "checked": False},
+    {"label": "Bowling", "checked": False},
+    {"label": "Casino", "checked": False},
+    {"label": "Movie Theater", "checked": False},
+    {"label": "Performing Arts", "checked": False},
+    {"label": "Spectator Sports", "checked": False},
+    {"label": "Zoos and Nature Parks", "checked": False},
+]
+
+leisurewellness_layers = [
+    {"label": "Golf Courses", "checked": False},
+    {"label": "Gym", "checked": False},
+    {"label": "Marinas", "checked": False},
 ]
 
 train_layers = [
@@ -148,112 +246,310 @@ bike_layers=[
     {"label": "DBizi", "checked": False},
 ]
 
-poi_menu=html.Div(
-            dbc.Accordion(
-                [
-                    # Educational Section
-                    dbc.AccordionItem(
-                        dmc.MantineProvider(
-                            children=[
-                                dmc.Checkbox(
-                                    id="all-educational",
-                                    label="Educational",
-                                    checked=False,
-                                    indeterminate=False
-                                ),
-                                html.Div([
-                                    dmc.Checkbox(
-                                        id={"type": "educational-item", "index": i},
-                                        label=item["label"],
-                                        checked=item["checked"],
-                                        style={"marginTop": "5px", "marginLeft": "33px"}
-                                    )
-                                    for i, item in enumerate(educational_layers)
-                                ])
-                            ]
-                        ),
-                        title="Education",
-                        item_id="educational",
-                    ),
-                    # Transport Section
-                    dbc.AccordionItem(
-                        dmc.MantineProvider(
-                            children=[
-                                # Bus
-                                html.Div([
-                                    dmc.Checkbox(
-                                        id="all-bus",
-                                        label="Bus",
-                                        checked=False,
-                                        indeterminate=False
-                                    ),
-                                    html.Div([
-                                        dmc.Checkbox(
-                                            id={"type": "bus-item", "index": i},
-                                            label=item["label"],
-                                            checked=item["checked"],
-                                            style={"marginTop": "5px", "marginLeft": "33px"}
-                                        )
-                                        for i, item in enumerate(bus_layers)
-                                    ])
-                                ]),
-                                # Train
-                                html.Div([
-                                    dmc.Checkbox(
-                                        id="all-train",
-                                        label="Train",
-                                        checked=False,
-                                        indeterminate=False
-                                    ),
-                                    html.Div([
-                                        dmc.Checkbox(
-                                            id={"type": "train-item", "index": i},
-                                            label=item["label"],
-                                            checked=item["checked"],
-                                            style={"marginTop": "5px", "marginLeft": "33px"}
-                                        )
-                                        for i, item in enumerate(train_layers)
-                                    ])
-                                ]),
-                                # Bike
-                                html.Div([
-                                    dmc.Checkbox(
-                                        id="all-bike",
-                                        label="Bike",
-                                        checked=False,
-                                        indeterminate=False
-                                    ),
-                                    html.Div([
-                                        dmc.Checkbox(
-                                            id={"type": "bike-item", "index": i},
-                                            label=item["label"],
-                                            checked=item["checked"],
-                                            style={"marginTop": "5px", "marginLeft": "33px"}
-                                        )
-                                        for i, item in enumerate(bike_layers)
-                                    ])
-                                ]),
-                            ]
-                        ),
-                        title="Transport",
-                        item_id="transport",
-                    ),
-                ],
-                id="accordion",
-                active_item="educational",
+religious_layers = [
+    {"label": "Religious Centers", "checked": False},
+]
+
+poi_menu = html.Div(
+    dbc.Accordion(
+        [
+            # Eat Section
+            dbc.AccordionItem(
+                dmc.MantineProvider(
+                    children=[
+                        html.H6("Food & Beverage", style={"marginTop": "10px", "marginBottom": "5px"}),
+                        html.Div([
+                            dmc.Checkbox(
+                                id={"type": "eat-item", "index": i},
+                                label=item["label"],
+                                checked=item["checked"],
+                                style={"marginTop": "5px", "marginLeft": "10px"}
+                            )
+                            for i, item in enumerate(eat_layers)
+                        ])
+                    ]
+                ),
+                title="Eat",
+                item_id="eatery",
             ),
-            style={
-            "position": "absolute",
-            "top": "10px",
-            "left": "10px",
-            "zIndex": "1000",
-            "backgroundColor": "rgba(255, 255, 255, 0.9)",
-            "padding": "10px",
-            "borderRadius": "5px",
-            "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
-            "width": "250px",
-        },
-    )
+            # Errands Section
+            dbc.AccordionItem(
+                dmc.MantineProvider(
+                    children=[
+                        # Healthcare
+                        html.Div([
+                            html.H6("Healthcare", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "healthcare-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(healthcare_layers)
+                            ])
+                        ]),
+                        # Leisure
+                        html.Div([
+                            html.H6("Leisure & Wellness", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "leisure-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(leisure_layers)
+                            ])
+                        ]),
+                        # Professional Services
+                        html.Div([
+                            html.H6("Professional Services", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "professional-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(professional_layers)
+                            ])
+                        ]),
+                        # Retail (Pharmacy)
+                        html.Div([
+                            html.H6("Retail (Pharmacy)", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "pharmacy-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(pharmacy_layers)
+                            ])
+                        ]),
+                        # Service
+                        html.Div([
+                            html.H6("Service", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "service-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(service_layers)
+                            ])
+                        ]),
+                    ]
+                ),
+                title="Errands",
+                item_id="errands",
+            ),
+            # Lodging Section
+            dbc.AccordionItem(
+                dmc.MantineProvider(
+                    children=[
+                        # Hotel
+                        html.Div([
+                            html.H6("Hotel", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "hotel-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(hotel_layers)
+                            ])
+                        ]),
+                    ]
+                ),
+                title="Lodging",
+                item_id="lodging",
+            ),
+            # Shop Section
+            dbc.AccordionItem(
+                dmc.MantineProvider(
+                    children=[
+                        # Retail (Consumer Goods)
+                        html.Div([
+                            html.H6("Consumer Goods", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "consumergoods-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(consumergoods_layers)
+                            ])
+                        ]),
+                        # Retail (Durable Goods)
+                        html.Div([
+                            html.H6("Durable Goods", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "durablegoods-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(durablegoods_layers)
+                            ])
+                        ]),
+                        # Retail (Grocery)
+                        html.Div([
+                            html.H6("Grocery", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "grocery-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(grocery_layers)
+                            ])
+                        ]),
+                    ]
+                ),
+                title="Shop",
+                item_id="shop",
+            ),
+            # Recreation Section
+            dbc.AccordionItem(
+                dmc.MantineProvider(
+                    children=[
+                        # Cultural
+                        html.Div([
+                            html.H6("Cultural", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "cultural-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(cultural_layers)
+                            ])
+                        ]),
+                        # Entertainment
+                        html.Div([
+                            html.H6("Entertainment", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "entertainment-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(entertainment_layers)
+                            ])
+                        ]),
+                        # Leisure & Wellness
+                        html.Div([
+                            html.H6("Leisure & Wellness", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "leisurewellness-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(leisurewellness_layers)
+                            ])
+                        ]),
+                    ]
+                ),
+                title="Recreation",
+                item_id="recreation",
+            ),
+            # Transport Section
+            dbc.AccordionItem(
+                dmc.MantineProvider(
+                    children=[
+                        # Train
+                        html.Div([
+                            html.H6("Train", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "train-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(train_layers)
+                            ])
+                        ]),
+                        # Bus
+                        html.Div([
+                            html.H6("Bus", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "bus-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(bus_layers)
+                            ])
+                        ]),
+                        # Bike
+                        html.Div([
+                            html.H6("Bike", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "bike-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(bike_layers)
+                            ])
+                        ]),
+                    ]
+                ),
+                title="Transport",
+                item_id="transport",
+            ),
+            # Errands Section
+            dbc.AccordionItem(
+                dmc.MantineProvider(
+                    children=[
+                        # Religious
+                        html.Div([
+                            html.H6("Religious", style={"marginTop": "10px", "marginBottom": "5px"}),
+                            html.Div([
+                                dmc.Checkbox(
+                                    id={"type": "religious-item", "index": i},
+                                    label=item["label"],
+                                    checked=item["checked"],
+                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                )
+                                for i, item in enumerate(religious_layers)
+                            ])
+                        ]),
+                    ]
+                ),
+                title="Others",
+                item_id="others",
+            ),
+        ],
+        id="accordion",
+        active_item="educational",
+    ),
+    style={
+        "position": "absolute",
+        "top": "10px",
+        "left": "10px",
+        "zIndex": "1000",
+        "backgroundColor": "rgba(255, 255, 255, 0.9)",
+        "padding": "10px",
+        "borderRadius": "5px",
+        "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+        "width": "250px",
+    },
+)
 
 # Layout
 app.layout = html.Div(
@@ -278,23 +574,6 @@ app.layout = html.Div(
 )
 
 @callback(
-    Output("all-educational", "checked"),
-    Output("all-educational", "indeterminate"),
-    Output({"type": "educational-item", "index": ALL}, "checked"),
-    Input("all-educational", "checked"),
-    Input({"type": "educational-item", "index": ALL}, "checked"),
-    prevent_initial_callback=True
-)
-def update_main_checkbox_education(all_checked, checked_states):
-    # handle "all" checkbox"
-    if ctx.triggered_id == 'all-educational':
-        checked_states = [all_checked] * len(checked_states)
-    # handled individual check boxes
-    all_checked_states = all(checked_states)
-    indeterminate = any(checked_states) and not all_checked_states
-    return all_checked_states, indeterminate, checked_states
-
-@callback(
     Output("map-points", "children"),
     Input({"type": "educational-item", "index": ALL}, "checked"),
 )
@@ -316,57 +595,6 @@ def update_map(checked_states):
                             )
                         )
     return map_points
-
-@callback(
-    Output("all-train", "checked"),
-    Output("all-train", "indeterminate"),
-    Output({"type": "train-item", "index": ALL}, "checked"),
-    Input("all-train", "checked"),
-    Input({"type": "train-item", "index": ALL}, "checked"),
-    prevent_initial_callback=True
-)
-def update_main_checkbox_train(all_checked, checked_states):
-    # handle "all" checkbox"
-    if ctx.triggered_id == 'all-train':
-        checked_states = [all_checked] * len(checked_states)
-    # handled individual check boxes
-    all_checked_states = all(checked_states)
-    indeterminate = any(checked_states) and not all_checked_states
-    return all_checked_states, indeterminate, checked_states
-
-@callback(
-    Output("all-bus", "checked"),
-    Output("all-bus", "indeterminate"),
-    Output({"type": "bus-item", "index": ALL}, "checked"),
-    Input("all-bus", "checked"),
-    Input({"type": "bus-item", "index": ALL}, "checked"),
-    prevent_initial_callback=True
-)
-def update_main_checkbox_bus(all_checked, checked_states):
-    # handle "all" checkbox"
-    if ctx.triggered_id == 'all-bus':
-        checked_states = [all_checked] * len(checked_states)
-    # handled individual check boxes
-    all_checked_states = all(checked_states)
-    indeterminate = any(checked_states) and not all_checked_states
-    return all_checked_states, indeterminate, checked_states
-
-@callback(
-    Output("all-bike", "checked"),
-    Output("all-bike", "indeterminate"),
-    Output({"type": "bike-item", "index": ALL}, "checked"),
-    Input("all-bike", "checked"),
-    Input({"type": "bike-item", "index": ALL}, "checked"),
-    prevent_initial_callback=True
-)
-def update_main_checkbox_bike(all_checked, checked_states):
-    # handle "all" checkbox"
-    if ctx.triggered_id == 'all-bike':
-        checked_states = [all_checked] * len(checked_states)
-    # handled individual check boxes
-    all_checked_states = all(checked_states)
-    indeterminate = any(checked_states) and not all_checked_states
-    return all_checked_states, indeterminate, checked_states
 
 # Update the callback to display the hovered feature's information, including CUSEC
 @callback(Output("info", "children"), Input("geojson-layer", "hoverData"))
