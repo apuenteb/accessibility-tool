@@ -16,7 +16,7 @@ visual_style = assign("""
             color: '#3182bd',
             weight: 2,
             opacity: 0.8,
-            fillColor: isClicked ? '#ff0000' : selectedColor,
+            fillColor: selectedColor,
             fillOpacity: 0.4
         };
     }
@@ -47,17 +47,6 @@ on_each_feature = assign("""
                 fillOpacity: 0.4
             });
         });
-
-        // Click event to change fillColor to red and log the state name
-        layer.on('click', function() {
-            feature.properties.clicked = !feature.properties.clicked; // Toggle clicked state
-            layer.setStyle({
-                fillColor: feature.properties.clicked ? '#ff0000' : feature.properties.selectedColor, // Toggle color
-                weight: 5,
-                fillOpacity: 0.9
-            });
-            console.log('Clicked state: ' + feature.properties['NAME']);
-        });
     }
 """)
 
@@ -67,7 +56,6 @@ with open("./assets/states_colored.geojson") as f:
 
 # Initialize clicked state for each feature and set the initial selected color to blue
 for feature in us_states_geojson['features']:
-    feature['properties']['clicked'] = False  # Add a 'clicked' property
     feature['properties']['selectedColor'] = '#6baed6'  # Default color (blue)
 
 # Dash app

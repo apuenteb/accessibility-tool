@@ -7,7 +7,7 @@ window.dashExtensions = Object.assign({}, window.dashExtensions, {
                     color: '#3182bd',
                     weight: 2,
                     opacity: 0.8,
-                    fillColor: isClicked ? '#ff0000' : selectedColor,
+                    fillColor: selectedColor,
                     fillOpacity: 0.4
                 };
             }
@@ -37,17 +37,6 @@ window.dashExtensions = Object.assign({}, window.dashExtensions, {
                     fillColor: feature.properties.selectedColor || '#6baed6', // Default fill color (blue)
                     fillOpacity: 0.4
                 });
-            });
-
-            // Click event to change fillColor to red and log the state name
-            layer.on('click', function() {
-                feature.properties.clicked = !feature.properties.clicked; // Toggle clicked state
-                layer.setStyle({
-                    fillColor: feature.properties.clicked ? '#ff0000' : feature.properties.selectedColor, // Toggle color
-                    weight: 5,
-                    fillOpacity: 0.9
-                });
-                console.log('Clicked state: ' + feature.properties['NAME']);
             });
         }
 
