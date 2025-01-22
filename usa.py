@@ -83,17 +83,14 @@ def update_color(checked_values):
         if checked:  # If the checkbox is checked
             selected_colors.append(color_layers[idx]["value"])  # Get the value of the selected color
 
-    # Print or return the selected colors (you can replace this with other logic)
-    print("Selected color layers:", selected_colors)
-
     # Update the GeoJSON based on the selected colors
     for feature in us_states_geojson['features']:
         if selected_colors:
             # Assign a color based on the selected colors
             if 'color_1' in selected_colors:
-                feature['properties']['selectedColor'] = '#ff0000'  # Example: red for color_1
+                feature['properties']['selectedColor'] = feature['properties']['color_1']  # Use color_1 from GeoJSON
             elif 'color_2' in selected_colors:
-                feature['properties']['selectedColor'] = '#00ff00'  # Example: green for color_2
+                feature['properties']['selectedColor'] = feature['properties']['color_2']  # Use color_2 from GeoJSON
             elif 'color_3' in selected_colors:
                 feature['properties']['selectedColor'] = '#0000ff'  # Example: blue for color_3
         else:
