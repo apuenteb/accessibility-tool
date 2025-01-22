@@ -536,7 +536,7 @@ poi_menu = html.Div(
             ),
         ],
         id="accordion",
-        active_item="educational",
+        active_item="eat",
     ),
     style={
         "position": "absolute",
@@ -575,13 +575,13 @@ app.layout = html.Div(
 
 @callback(
     Output("map-points", "children"),
-    Input({"type": "educational-item", "index": ALL}, "checked"),
+    Input({"type": "eat-item", "index": ALL}, "checked"),
 )
 def update_map(checked_states):
     map_points = []
     for i, is_checked in enumerate(checked_states):
         if is_checked:
-            layer = educational_layers[i]  # Access the layer directly
+            layer = eat_layers[i]  # Access the layer directly
             for feature in layer["geojson"]["features"]:
                 # Check if coordinates are valid (latitude and longitude are not null)
                 coordinates = feature.get("geometry", {}).get("coordinates", None)
@@ -603,7 +603,7 @@ def info_hover(feature):
 
 @app.callback(
     Output('geojson-layer', 'data'),
-    [Input({"type": "educational-item", "index": ALL}, "checked")]  # Listen for changes in the checked state of the color checkboxes
+    [Input({"type": "eat-item", "index": ALL}, "checked")]  # Listen for changes in the checked state of the color checkboxes
 )
 def update_color(checked_values):
     # Update the selected colors based on checkbox input (checked state)
@@ -612,7 +612,7 @@ def update_color(checked_values):
     # Iterate over the checked values to gather the selected colors
     for idx, checked in enumerate(checked_values):
         if checked:  # If the checkbox is checked
-            selected_colors.append(educational_layers[idx]["value"])  # Get the value of the selected color
+            selected_colors.append(eat_layers[idx]["value"])  # Get the value of the selected color
 
     # Update the GeoJSON based on the selected colors
     for feature in geojson['features']:
