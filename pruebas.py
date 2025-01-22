@@ -276,7 +276,7 @@ app.layout = html.Div(
     Input({"type": "educational-item", "index": ALL}, "checked"),
     prevent_initial_callback=True
 )
-def update_main_checkbox(all_checked, checked_states):
+def update_main_checkbox_education(all_checked, checked_states):
     # handle "all" checkbox"
     if ctx.triggered_id == 'all-educational':
         checked_states = [all_checked] * len(checked_states)
@@ -316,7 +316,7 @@ def update_map(checked_states):
     Input({"type": "train-item", "index": ALL}, "checked"),
     prevent_initial_callback=True
 )
-def update_main_checkbox(all_checked, checked_states):
+def update_main_checkbox_train(all_checked, checked_states):
     # handle "all" checkbox"
     if ctx.triggered_id == 'all-train':
         checked_states = [all_checked] * len(checked_states)
@@ -333,7 +333,7 @@ def update_main_checkbox(all_checked, checked_states):
     Input({"type": "bus-item", "index": ALL}, "checked"),
     prevent_initial_callback=True
 )
-def update_main_checkbox(all_checked, checked_states):
+def update_main_checkbox_bus(all_checked, checked_states):
     # handle "all" checkbox"
     if ctx.triggered_id == 'all-bus':
         checked_states = [all_checked] * len(checked_states)
@@ -350,7 +350,7 @@ def update_main_checkbox(all_checked, checked_states):
     Input({"type": "bike-item", "index": ALL}, "checked"),
     prevent_initial_callback=True
 )
-def update_main_checkbox(all_checked, checked_states):
+def update_main_checkbox_bike(all_checked, checked_states):
     # handle "all" checkbox"
     if ctx.triggered_id == 'all-bike':
         checked_states = [all_checked] * len(checked_states)
