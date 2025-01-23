@@ -7,9 +7,9 @@ from dash_extensions.javascript import assign
 import json
 
 def get_info(feature=None):
-    header = [html.H4("Demographic data")]
+    header = [html.H4("Hover over a block for details")]
     if not feature:
-        return header + [html.P("Hover over a building")]
+        return header + [html.P("")]
     
     # Extract properties from the feature
     municipio = feature["properties"].get("Municipio", "Unknown")
@@ -20,13 +20,14 @@ def get_info(feature=None):
         html.B(feature["properties"]["Municipio"]), html.Br(),
         f"Density: {density_str} people / mi²", html.Br(),
         html.B("CUSEC: "), feature["properties"].get("CUSEC", "N/A"), html.Br(),
-        html.B("Municipio: "), municipio  # Add Municipio here
+        html.B("Municipio: "), municipio  
     ]
 
 # Create info control.
 info = html.Div(children=get_info(), id="info", className="info",
                 style={"position": "absolute", "top": "10px", "right": "10px", "zIndex": "1000"})
 
+# styling of the polygons (default & when hovered)
 visual_style = assign(""" 
     function(feature) {
         const selectedColor = feature.properties.selectedColor || '#6baed6'; // Default color (blue)
@@ -40,18 +41,7 @@ visual_style = assign("""
     }
 """)
 
-highlight_style = assign("""
-    function() {
-        return {
-            color: '#2b5775',
-            weight: 3,
-            opacity: 1,
-            fillOpacity: 0.7
-        };
-    }
-""")
-
-# Inline JavaScript for hover interaction
+# hover interaction
 on_each_feature = assign("""
     function(feature, layer) {
         // Mouseover event
@@ -104,13 +94,15 @@ on_each_feature = assign("""
     }
 """)
 
-# Dash app
+# Dash app (initialize like here always, if not the dmc components don't work, we need to make sure the React version is 18.2.0)
+# React 18 Issue: Dash Mantine Components is based on REACT 18. You must set the env variable REACT_VERSION=18.2.0 before starting up the app.
+# https://www.dash-mantine-components.com/getting-started#:~:text=React%2018%20Issue,up%20the%20app.
 _dash_renderer._set_react_version("18.2.0")
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
 server = app.server
 
 # Load geojson polygons
-with open("assets/hospital_with_colors.geojson", "r") as f:
+with open("assets/sections_gipuzkoa.geojson", "r") as f:
     geojson = json.load(f)
 
 # Set the initial selected color to blue (default)
@@ -548,7 +540,7 @@ poi_menu = html.Div(
                                     id={"type": "religious-item", "index": i},
                                     label=item["label"],
                                     checked=item["checked"],
-                                    style={"marginTop": "5px", "marginLeft": "33px"}
+                                    style={"marginTop": "0px", "marginLeft": "33px"}
                                 )
                                 for i, item in enumerate(religious_layers)
                             ])
@@ -568,16 +560,54 @@ poi_menu = html.Div(
     ),
     style={
         "position": "absolute",
-        "top": "10px",
+        "top": "190px",
         "left": "10px",
         "zIndex": "1000",
         "backgroundColor": "rgba(255, 255, 255, 0.9)",
         "padding": "10px",
         "borderRadius": "5px",
         "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
-        "width": "320px",
+        "width": "380px",
     },
 )
+
+data_group1 = [["opt1", "Walk"], ["opt2", "Bike"], ["opt3", "Public Transit"], ["opt4", "Car"]]
+
+# Define the first radio group as a separate component
+radio_menu_1 = dmc.MantineProvider(
+    children=[
+        dmc.RadioGroup(
+            children=dmc.Group(
+                [dmc.Radio(label, value=value) for value, label in data_group1],
+               my=10,
+            ),
+            id="radiogroup-1",
+            value="opt1",
+            label="Select a mode of transport",
+            size="sm",
+        )
+    ]
+)
+
+data_group2 = [["choiceA", "Population Density"], ["choiceB", "Foreign Population"], ["choiceC", "Income Level"]]
+
+# Define the second radio group as a separate component
+radio_menu_2 = dmc.MantineProvider(
+    children=[
+        dmc.RadioGroup(
+            children=dmc.Group(
+                [dmc.Radio(label, value=value) for value, label in data_group2],
+                my=10,
+            ),
+            id="radiogroup-2",
+            value="choiceA",
+            label="Select the demographic data to display",
+            size="sm",
+            mb=10,
+        )
+    ]
+)
+
 
 # Layout
 app.layout = html.Div(
@@ -596,7 +626,30 @@ app.layout = html.Div(
             zoom=11,
             style={"height": "100vh", "width": "100%"},
         ),
-        poi_menu,
+        html.Div(
+            [
+                html.Div(
+                    [radio_menu_1],
+                    style={
+                        "marginTop": "0px",
+                        "padding": "10px",
+                        "backgroundColor": "white",
+                    },
+                ),
+            ],
+            style={
+                "position": "absolute",
+                "top": "80px",
+                "left": "10px",
+                "width": "380px",
+                "backgroundColor": "rgba(255, 255, 255, 0.8)",
+                "zIndex": 1000,
+                "padding": "10px",
+                "borderRadius": "5px",
+                "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+            },
+        ),
+    poi_menu,
     info
     ]
 )

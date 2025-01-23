@@ -12,17 +12,7 @@ window.dashExtensions = Object.assign({}, window.dashExtensions, {
             }
 
             ,
-        function1: function() {
-                return {
-                    color: '#2b5775',
-                    weight: 3,
-                    opacity: 1,
-                    fillOpacity: 0.7
-                };
-            }
-
-            ,
-        function2: function(feature, layer) {
+        function1: function(feature, layer) {
             // Mouseover event
             layer.on('mouseover', function() {
                 const CUSEC = feature.properties['CUSEC'];
