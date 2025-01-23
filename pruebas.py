@@ -592,7 +592,7 @@ app.layout = html.Div(
                 ),
                 dl.LayerGroup(id="map-points"),
             ],
-            center=[43.3, -2.0],
+            center=[43.16, -2.2],
             zoom=11,
             style={"height": "100vh", "width": "100%"},
         ),
