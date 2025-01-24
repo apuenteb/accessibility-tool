@@ -559,15 +559,10 @@ poi_menu = html.Div(
         active_item="eat",
     ),
     style={
-        "position": "absolute",
-        "top": "190px",
-        "left": "10px",
-        "zIndex": "1000",
         "backgroundColor": "rgba(255, 255, 255, 0.9)",
-        "padding": "10px",
+        "padding": "2px",
         "borderRadius": "5px",
-        "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
-        "width": "380px",
+        "width": "360px",
     },
 )
 
@@ -612,6 +607,7 @@ demog_menu = dmc.MantineProvider(
 # Layout
 app.layout = html.Div(
     [
+        # Map Component
         dl.Map(
             [
                 dl.TileLayer(url='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', maxZoom=20),
@@ -626,14 +622,39 @@ app.layout = html.Div(
             zoom=11,
             style={"height": "100vh", "width": "100%"},
         ),
+        # Sidebar Container
         html.Div(
             [
+                # All Menus in One Container
                 html.Div(
-                    [mt_menu],
+                    [
+                        html.Div(
+                            mt_menu,
+                            style={
+                                "marginBottom": "2px",
+                                "padding": "10px",
+                                "backgroundColor": "white",
+                                "borderRadius": "5px",
+                            },
+                        ),
+                        html.Div(
+                            poi_menu,
+                        ),
+                        html.Div(
+                            demog_menu,
+                            style={
+                                "marginBottom": "2px",
+                                "padding": "10px",
+                                "backgroundColor": "white",
+                                "borderRadius": "5px",
+                                
+                            },
+                        ),
+                    ],
                     style={
-                        "marginTop": "0px",
-                        "padding": "10px",
-                        "backgroundColor": "white",
+                        "display": "flex",
+                        "flexDirection": "column",
+                        "gap": "2px",  # Space between menus
                     },
                 ),
             ],
@@ -649,33 +670,10 @@ app.layout = html.Div(
                 "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
             },
         ),
-    poi_menu,
-    html.Div(
-            [
-                html.Div(
-                    [demog_menu],
-                    style={
-                        "marginTop": "0px",
-                        "padding": "10px",
-                        "backgroundColor": "white",
-                    },
-                ),
-            ],
-            style={
-                "position": "absolute",
-                "top": "684px",
-                "left": "10px",
-                "width": "380px",
-                "backgroundColor": "rgba(255, 255, 255, 0.8)",
-                "zIndex": 1000,
-                "padding": "10px",
-                "borderRadius": "5px",
-                "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
-            },
-        ),
-    info
+        info,
     ]
 )
+
 
 @callback(
     Output("map-points", "children"),
