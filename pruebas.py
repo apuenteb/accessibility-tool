@@ -102,7 +102,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles
 server = app.server
 
 # Load geojson polygons
-with open("assets/sections_gipuzkoa.geojson", "r") as f:
+with open("assets/hospital_with_colors.geojson", "r") as f:
     geojson = json.load(f)
 
 # Set the initial selected color to blue (default)
@@ -603,6 +603,19 @@ demog_menu = dmc.MantineProvider(
     ]
 )
 
+buttons = dmc.MantineProvider(
+    children=[
+        dmc.Group([
+        dmc.Button("Apply", variant="filled", size="md"),
+        dmc.Button("Reset", variant="filled", size="md"),
+    ],
+        id="button-group",
+        gap=40,
+        justify="center",
+    )
+    ]
+)
+
 
 # Layout
 app.layout = html.Div(
@@ -617,10 +630,12 @@ app.layout = html.Div(
                     options=dict(style=visual_style, onEachFeature=on_each_feature),
                 ),
                 dl.LayerGroup(id="map-points"),
+                dl.ZoomControl(position="bottomright", id="zoom"),
             ],
             center=[43.16, -2.2],
             zoom=11,
             style={"height": "100vh", "width": "100%"},
+            zoomControl=False,  # Disable default zoom control
         ),
         # Sidebar Container
         html.Div(
@@ -650,6 +665,14 @@ app.layout = html.Div(
                                 
                             },
                         ),
+                        html.Div(
+                            buttons,
+                            style={
+                                
+                                "borderRadius": "5px",
+                                "backgroundColor": "rgba(255, 255, 255)",
+                            },
+                        ),
                     ],
                     style={
                         "display": "flex",
@@ -660,10 +683,10 @@ app.layout = html.Div(
             ],
             style={
                 "position": "absolute",
-                "top": "80px",
+                "top": "10px",
                 "left": "10px",
                 "width": "380px",
-                "backgroundColor": "rgba(255, 255, 255, 0.8)",
+                "backgroundColor": "rgba(255, 255, 255)",
                 "zIndex": 1000,
                 "padding": "10px",
                 "borderRadius": "5px",
