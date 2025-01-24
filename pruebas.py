@@ -571,14 +571,14 @@ poi_menu = html.Div(
     },
 )
 
-data_group1 = [["opt1", "Walk"], ["opt2", "Bike"], ["opt3", "Public Transit"], ["opt4", "Car"]]
+data_mt = [["opt1", "Walk"], ["opt2", "Bike"], ["opt3", "Public Transit"], ["opt4", "Car"]]
 
 # Define the first radio group as a separate component
-radio_menu_1 = dmc.MantineProvider(
+mt_menu = dmc.MantineProvider(
     children=[
         dmc.RadioGroup(
             children=dmc.Group(
-                [dmc.Radio(label, value=value) for value, label in data_group1],
+                [dmc.Radio(label, value=value) for value, label in data_mt],
                my=10,
             ),
             id="radiogroup-1",
@@ -589,14 +589,14 @@ radio_menu_1 = dmc.MantineProvider(
     ]
 )
 
-data_group2 = [["choiceA", "Population Density"], ["choiceB", "Foreign Population"], ["choiceC", "Income Level"]]
+data_demog = [["choiceA", "Population Density"], ["choiceB", "Foreign Population"], ["choiceC", "Income Level"]]
 
 # Define the second radio group as a separate component
-radio_menu_2 = dmc.MantineProvider(
+demog_menu = dmc.MantineProvider(
     children=[
         dmc.RadioGroup(
-            children=dmc.Group(
-                [dmc.Radio(label, value=value) for value, label in data_group2],
+            children=dmc.Stack(
+                [dmc.Radio(label, value=value) for value, label in data_demog],
                 my=10,
             ),
             id="radiogroup-2",
@@ -629,7 +629,7 @@ app.layout = html.Div(
         html.Div(
             [
                 html.Div(
-                    [radio_menu_1],
+                    [mt_menu],
                     style={
                         "marginTop": "0px",
                         "padding": "10px",
@@ -650,6 +650,29 @@ app.layout = html.Div(
             },
         ),
     poi_menu,
+    html.Div(
+            [
+                html.Div(
+                    [demog_menu],
+                    style={
+                        "marginTop": "0px",
+                        "padding": "10px",
+                        "backgroundColor": "white",
+                    },
+                ),
+            ],
+            style={
+                "position": "absolute",
+                "top": "684px",
+                "left": "10px",
+                "width": "380px",
+                "backgroundColor": "rgba(255, 255, 255, 0.8)",
+                "zIndex": 1000,
+                "padding": "10px",
+                "borderRadius": "5px",
+                "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+            },
+        ),
     info
     ]
 )
