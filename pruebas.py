@@ -5,6 +5,7 @@ import dash_mantine_components as dmc
 import dash_leaflet as dl
 from dash_extensions.javascript import assign
 import json
+import dash_leaflet.express as dlx
 
 def get_info(feature=None):
     header = [html.H4("Hover over a block for details")]
@@ -616,6 +617,14 @@ buttons = dmc.MantineProvider(
     ]
 )
 
+# Define map and data
+classes = [0, 3, 6, 10, 15, 20, 25]
+colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340', '#6a1717']
+
+# Define categories for color bar
+ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+"]
+colorbar = dlx.categorical_colorbar(categories=ctg, colorscale=colorscale, width=300, height=30, position="bottomright")
+
 
 # Layout
 app.layout = html.Div(
@@ -630,6 +639,7 @@ app.layout = html.Div(
                     options=dict(style=visual_style, onEachFeature=on_each_feature),
                 ),
                 dl.LayerGroup(id="map-points"),
+                colorbar,
                 dl.ZoomControl(position="bottomright", id="zoom"),
             ],
             center=[43.16, -2.2],
@@ -756,4 +766,4 @@ def update_color(checked_values):
     return geojson  # Return the updated GeoJSON data
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=False)
