@@ -1,5 +1,5 @@
 import dash
-from dash import html, Input, Output, ALL, callback, ctx, _dash_renderer
+from dash import html, Input, Output, ALL, callback, ctx, _dash_renderer, dcc, State
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 import dash_leaflet as dl
@@ -103,7 +103,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles
 server = app.server
 
 # Load geojson polygons
-with open("assets/hospital_with_colors.geojson", "r") as f:
+with open("assets/prueba.geojson", "r") as f:
     geojson = json.load(f)
 
 # Set the initial selected color to blue (default)
@@ -129,8 +129,8 @@ eat_layers = [
 ]
 
 healthcare_layers = [
-    {"label": "Clinics & local healthcare centers", "checked": False},
-    {"label": "Hospitals", "checked": False},
+    {"label": "Clinics & local healthcare centers", "value":"color_2", "geojson":hospitals_geojson,"checked": False},
+    {"label": "Hospitals", "value":"color_1","geojson":libraries_geojson,"checked": False},
     {"label": "Nursing & Residential Care", "checked": False},
     {"label": "Dentists", "checked": False},
     {"label": "Psychologist", "checked": False},
@@ -607,8 +607,7 @@ demog_menu = dmc.MantineProvider(
 buttons = dmc.MantineProvider(
     children=[
         dmc.Group([
-        dmc.Button("Apply", variant="filled", size="md"),
-        dmc.Button("Reset", variant="filled", size="md"),
+        dmc.Button("Apply", variant="filled", size="md", id="apply-button"),
     ],
         id="button-group",
         gap=40,
@@ -707,63 +706,77 @@ app.layout = html.Div(
     ]
 )
 
-
-@callback(
-    Output("map-points", "children"),
-    Input({"type": "eat-item", "index": ALL}, "checked"),
-)
-def update_map(checked_states):
-    map_points = []
-    for i, is_checked in enumerate(checked_states):
-        if is_checked:
-            layer = eat_layers[i]  # Access the layer directly
-            for feature in layer["geojson"]["features"]:
-                # Check if coordinates are valid (latitude and longitude are not null)
-                coordinates = feature.get("geometry", {}).get("coordinates", None)
-                if coordinates and len(coordinates) >= 2:
-                    lon, lat = coordinates  # Coordinates are [longitude, latitude]
-                    if lat is not None and lon is not None:
-                        map_points.append(
-                            dl.Marker(
-                                position=[lat, lon],  # Use [lat, lon] in the correct order
-                                children=[dl.Popup(layer["label"])]
-                            )
-                        )
-    return map_points
-
 # Update the callback to display the hovered feature's information, including CUSEC
 @callback(Output("info", "children"), Input("geojson-layer", "hoverData"))
 def info_hover(feature):
     return get_info(feature)
 
 @app.callback(
-    Output('geojson-layer', 'data'),
-    [Input({"type": "eat-item", "index": ALL}, "checked")]  # Listen for changes in the checked state of the color checkboxes
+    [Output('geojson-layer', 'data'),  # Update GeoJSON layer
+     Output("map-points", "children")],  # Update map points
+    [Input("apply-button", "n_clicks")],  # Trigger on Apply button click
+    [State({"type": ALL, "index": ALL}, "checked")]  # Read checkbox states
 )
-def update_color(checked_values):
-    # Update the selected colors based on checkbox input (checked state)
+def update_color_and_map(n_clicks, checked_values):
+    if not n_clicks:  # Prevent callback from running before Apply is clicked
+        return dash.no_update, dash.no_update
+
+    # Combine all layers into one list (in the same order as the checkboxes)
+    all_layers = [
+        eat_layers, healthcare_layers, leisure_layers, professional_layers,
+        pharmacy_layers, service_layers, hotel_layers, consumergoods_layers,
+        durablegoods_layers, grocery_layers, cultural_layers, entertainment_layers,
+        leisurewellness_layers, train_layers, bus_layers, bike_layers, religious_layers
+    ]
+    
     selected_colors = []
+    map_points = []
+    layer_idx = 0  # To track the index across all layers
+    
+    print(f"Checked values: {checked_values}")  # Log the checked values
+    
+    # Iterate over each layer group (each list of layers)
+    for layer_group in all_layers:
+        print(f"Processing layer group: {layer_group[0].get('label', 'Unknown')}")  # Log the layer group
+        
+        # Iterate over the checkboxes for each layer group
+        for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
+            print(f"Layer {layer_group[idx]['label']} checked: {checked}")  # Log checkbox state
+            if checked:
+                layer = layer_group[idx]
+                selected_colors.append(layer["value"])  # Get the value of the selected color
+                
+                # Process map points for this checked layer
+                for feature in layer["geojson"]["features"]:
+                    # Validate coordinates
+                    coordinates = feature.get("geometry", {}).get("coordinates")
+                    if coordinates and len(coordinates) >= 2:
+                        lon, lat = coordinates
+                        if lat is not None and lon is not None:
+                            map_points.append(
+                                dl.Marker(
+                                    position=[lat, lon],  # Use [lat, lon]
+                                    children=[dl.Popup(layer["label"])]
+                                )
+                            )
+        layer_idx += len(layer_group)  # Move the index forward by the number of layers in the group
 
-    # Iterate over the checked values to gather the selected colors
-    for idx, checked in enumerate(checked_values):
-        if checked:  # If the checkbox is checked
-            selected_colors.append(eat_layers[idx]["value"])  # Get the value of the selected color
+    print(f"Selected colors: {selected_colors}")  # Log the selected colors
+    print(f"Map points: {len(map_points)} points")  # Log the number of map points
 
-    # Update the GeoJSON based on the selected colors
+    # Update GeoJSON based on selected colors
     for feature in geojson['features']:
         if selected_colors:
-            # Assign a color based on the selected colors
             if 'color_1' in selected_colors:
-                feature['properties']['selectedColor'] = feature['properties']['color_1']  # Use color_1 from GeoJSON
+                feature['properties']['selectedColor'] = feature['properties']['color_1']
             elif 'color_2' in selected_colors:
-                feature['properties']['selectedColor'] = feature['properties']['color_2']  # Use color_2 from GeoJSON
+                feature['properties']['selectedColor'] = feature['properties']['color_2']
             elif 'color_3' in selected_colors:
-                feature['properties']['selectedColor'] = '#0000ff'  # Example: blue for color_3
+                feature['properties']['selectedColor'] = '#0000ff'
         else:
-            # If no colors are selected, revert to the default color (blue)
-            feature['properties']['selectedColor'] = '#6baed6'  # Default to blue
+            feature['properties']['selectedColor'] = '#6baed6'  # Default color
 
-    return geojson  # Return the updated GeoJSON data
+    return geojson, map_points
 
 if __name__ == "__main__":
     app.run_server(debug=False)
