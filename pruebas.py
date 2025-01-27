@@ -39,8 +39,18 @@ def get_info(feature=None, selected_pois=None, transport_mode="walk"):
         # Filter the DataFrame for the matching `Erreferentz`
         row = time_data[time_data["Erreferentz"] == ref]
         if not row.empty:
-            bike_time = row["color_1_bike"].iloc[0] if "color_1_bike" in row else "N/A"
-            walk_time = row["color_1_walk"].iloc[0] if "color_1_walk" in row else "N/A"
+            # Initialize a list to store time info for the selected POIs
+            poi_times = []
+
+            # For each selected POI, get the corresponding time based on the transport mode
+            for column in selected_pois:
+                column_with_mode = f"{column}_{transport_mode}"
+                
+                # Get the time for this POI and mode of transport
+                time = row.get(column_with_mode).iloc[0] if column_with_mode in row.columns else "N/A"
+                
+                # Add the time info to the list
+                poi_times.append(html.P([html.B(column.capitalize()), f": {time} minutes"]))
     
     # Build the HTML output
     return [
@@ -50,7 +60,7 @@ def get_info(feature=None, selected_pois=None, transport_mode="walk"):
        # html.B("Walk Time: "), f"{walk_time} minutes", html.Br(),
        # html.B("Bike Time: "), f"{bike_time} minutes", html.Br(),
         transport_msg, html.Br(),
-        html.B("Selected POIs: "), f"{', '.join(selected_pois)}", html.Br(),
+        html.Ul([html.P(poi_time) for poi_time in poi_times])  # Display each selected POI with its time
     ]
 
 # Create info control.
