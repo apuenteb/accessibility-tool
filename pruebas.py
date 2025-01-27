@@ -6,22 +6,51 @@ import dash_leaflet as dl
 from dash_extensions.javascript import assign
 import json
 import dash_leaflet.express as dlx
+import pandas as pd
 
-def get_info(feature=None):
+
+def get_info(feature=None, selected_pois=None, transport_mode="walk"):
+    # Default header when no feature is hovered
     header = [html.H4("Hover over a block for details")]
     if not feature:
         return header + [html.P("")]
     
+    if transport_mode == "walk":
+        transport_msg = html.B("Walking time to:")
+    elif transport_mode == "bike":
+        transport_msg = html.B("Biking time to:")
+    elif transport_mode == "pt":
+        transport_msg = html.B("Public transit time to:")
+    elif transport_mode == "car":
+        transport_msg = html.B("Driving time to:")
+    
+    # Load the CSV file into a pandas DataFrame
+    time_data = pd.read_csv('assets/prueba.csv', dtype={"Erreferentz": str})
+    
     # Extract properties from the feature
     municipio = feature["properties"].get("Municipio", "Unknown")
     density_str = feature["properties"].get("density", "N/A")
+    cusec = feature["properties"].get("CUSEC", "N/A")
+    ref = feature["properties"].get("Erreferentz", None)
     
-    # Display the information including Municipio and density as strings
-    return header + [
-        html.B(feature["properties"]["Municipio"]), html.Br(),
-        f"Density: {density_str} people / mi²", html.Br(),
-        html.B("CUSEC: "), feature["properties"].get("CUSEC", "N/A"), html.Br(),
-        html.B("Municipio: "), municipio  
+    # Ensure `ref` is a string for comparison
+    if time_data is not None and ref:
+        ref = str(ref).strip()  # Convert and clean `ref`
+        # Filter the DataFrame for the matching `Erreferentz`
+        row = time_data[time_data["Erreferentz"] == ref]
+        if not row.empty:
+            bike_time = row["color_1_bike"].iloc[0] if "color_1_bike" in row else "N/A"
+            walk_time = row["color_1_walk"].iloc[0] if "color_1_walk" in row else "N/A"
+    
+    # Build the HTML output
+    return [
+        #html.B("Municipio: "), f"{municipio}", html.Br(),
+        #html.B("Density: "), f"{density_str} people / mi²", html.Br(),
+       # html.B("CUSEC: "), f"{cusec}", html.Br(),
+       # html.B("Walk Time: "), f"{walk_time} minutes", html.Br(),
+       # html.B("Bike Time: "), f"{bike_time} minutes", html.Br(),
+        transport_msg, html.Br(),
+        html.B("Selected POIs: "), f"{', '.join(selected_pois)}", html.Br(),
     ]
 
 # Create info control.
@@ -578,7 +607,7 @@ mt_menu = dmc.MantineProvider(
                my=10,
             ),
             id="transport-choice",
-            value="opt1",
+            value="walk",
             label="Select a mode of transport",
             size="sm",
         )
@@ -703,24 +732,33 @@ app.layout = html.Div(
             },
         ),
         info,
+        dcc.Store(id="selected-pois", data=[]),  # Store for POIs (empty list as default)
     ]
 )
 
 # Update the callback to display the hovered feature's information, including CUSEC
-@callback(Output("info", "children"), Input("geojson-layer", "hoverData"))
-def info_hover(feature):
-    return get_info(feature)
+@callback(
+    Output("info", "children"),  # Update the info display
+    [Input("geojson-layer", "hoverData"),  # Trigger when hovering over GeoJSON layer
+     Input("selected-pois", "data"),  # Access selected POIs from the dcc.Store
+     State("transport-choice", "value")]  # Access selected transport mode from the dcc.Store
+)
+def info_hover(feature, selected_pois, transport_mode):
+    # Use the feature and selected_pois data in your function
+    return get_info(feature, selected_pois, transport_mode)
+
 
 @app.callback(
-    [Output('geojson-layer', 'data'),  # Update GeoJSON layer
-     Output("map-points", "children")],  # Update map points
+    [Output("geojson-layer", "data"),  # Update GeoJSON layer
+     Output("map-points", "children"),  # Update map points
+     Output("selected-pois", "data")],  # Update selected POIs in the Store
     [Input("apply-button", "n_clicks")],  # Trigger on Apply button click
     [State({"type": ALL, "index": ALL}, "checked"),  # Read checkbox states
      State("transport-choice", "value")]  # Read mode of transport selection
 )
 def update_color_and_map(n_clicks, checked_values, transport_mode):
     if not n_clicks:  # Prevent callback from running before Apply is clicked
-        return dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update
 
     # Define color priority in order from worst to best
     color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
@@ -733,8 +771,8 @@ def update_color_and_map(n_clicks, checked_values, transport_mode):
         leisurewellness_layers, train_layers, bus_layers, bike_layers, religious_layers
     ]
     
-    selected_colors = []
-    map_points = []
+    selected_pois = []  # To store the selected colors
+    map_points = []  # To store the map points
     layer_idx = 0  # To track the index across all layers
     
     # Iterate over each layer group (each list of layers)
@@ -742,7 +780,7 @@ def update_color_and_map(n_clicks, checked_values, transport_mode):
         for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
             if checked:
                 layer = layer_group[idx]
-                selected_colors.append(layer["value"])  # Get the column name (e.g., "hospital")
+                selected_pois.append(layer["value"])  # Get the column name (e.g., "hospital")
                 
                 # Process map points for this checked layer
                 for feature in layer["geojson"]["features"]:
@@ -764,7 +802,7 @@ def update_color_and_map(n_clicks, checked_values, transport_mode):
         feature_colors = []
 
         # Iterate over the selected column names (e.g., "hospital") and gather colors
-        for column in selected_colors:
+        for column in selected_pois:
             # Append the mode of transport (e.g., "hospital_bike" if the mode is "bike")
             column_with_mode = f"{column}_{transport_mode}"
             
@@ -787,8 +825,7 @@ def update_color_and_map(n_clicks, checked_values, transport_mode):
             feature['properties']['selectedColor'] = '#6baed6'  # Default color if no selection
 
     # Ensure geojson is updated with the selected color
-    return geojson, map_points
-
+    return geojson, map_points, selected_pois
 
 if __name__ == "__main__":
     app.run_server(debug=False)
