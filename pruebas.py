@@ -129,8 +129,8 @@ eat_layers = [
 ]
 
 healthcare_layers = [
-    {"label": "Clinics & local healthcare centers", "value":"color_2", "geojson":hospitals_geojson,"checked": False},
-    {"label": "Hospitals", "value":"color_1","geojson":libraries_geojson,"checked": False},
+    {"label": "Clinics & local healthcare centers", "value":"color_5", "geojson":hospitals_geojson,"checked": False},
+    {"label": "Hospitals", "value":"color_6","geojson":libraries_geojson,"checked": False},
     {"label": "Nursing & Residential Care", "checked": False},
     {"label": "Dentists", "checked": False},
     {"label": "Psychologist", "checked": False},
@@ -567,7 +567,7 @@ poi_menu = html.Div(
     },
 )
 
-data_mt = [["opt1", "Walk"], ["opt2", "Bike"], ["opt3", "Public Transit"], ["opt4", "Car"]]
+data_mt = [["walk", "Walk"], ["bike", "Bike"], ["pt", "Public Transit"], ["car", "Car"]]
 
 # Define the first radio group as a separate component
 mt_menu = dmc.MantineProvider(
@@ -577,7 +577,7 @@ mt_menu = dmc.MantineProvider(
                 [dmc.Radio(label, value=value) for value, label in data_mt],
                my=10,
             ),
-            id="radiogroup-1",
+            id="transport-choice",
             value="opt1",
             label="Select a mode of transport",
             size="sm",
@@ -715,12 +715,16 @@ def info_hover(feature):
     [Output('geojson-layer', 'data'),  # Update GeoJSON layer
      Output("map-points", "children")],  # Update map points
     [Input("apply-button", "n_clicks")],  # Trigger on Apply button click
-    [State({"type": ALL, "index": ALL}, "checked")]  # Read checkbox states
+    [State({"type": ALL, "index": ALL}, "checked"),  # Read checkbox states
+     State("transport-choice", "value")]  # Read mode of transport selection
 )
-def update_color_and_map(n_clicks, checked_values):
+def update_color_and_map(n_clicks, checked_values, transport_mode):
     if not n_clicks:  # Prevent callback from running before Apply is clicked
         return dash.no_update, dash.no_update
 
+    # Define color priority in order from worst to best
+    color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
+    
     # Combine all layers into one list (in the same order as the checkboxes)
     all_layers = [
         eat_layers, healthcare_layers, leisure_layers, professional_layers,
@@ -733,18 +737,12 @@ def update_color_and_map(n_clicks, checked_values):
     map_points = []
     layer_idx = 0  # To track the index across all layers
     
-    print(f"Checked values: {checked_values}")  # Log the checked values
-    
     # Iterate over each layer group (each list of layers)
     for layer_group in all_layers:
-        print(f"Processing layer group: {layer_group[0].get('label', 'Unknown')}")  # Log the layer group
-        
-        # Iterate over the checkboxes for each layer group
         for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
-            print(f"Layer {layer_group[idx]['label']} checked: {checked}")  # Log checkbox state
             if checked:
                 layer = layer_group[idx]
-                selected_colors.append(layer["value"])  # Get the value of the selected color
+                selected_colors.append(layer["value"])  # Get the column name (e.g., "hospital")
                 
                 # Process map points for this checked layer
                 for feature in layer["geojson"]["features"]:
@@ -761,22 +759,36 @@ def update_color_and_map(n_clicks, checked_values):
                             )
         layer_idx += len(layer_group)  # Move the index forward by the number of layers in the group
 
-    print(f"Selected colors: {selected_colors}")  # Log the selected colors
-    print(f"Map points: {len(map_points)} points")  # Log the number of map points
-
-    # Update GeoJSON based on selected colors
+    # Now prioritize the colors for each feature
     for feature in geojson['features']:
-        if selected_colors:
-            if 'color_1' in selected_colors:
-                feature['properties']['selectedColor'] = feature['properties']['color_1']
-            elif 'color_2' in selected_colors:
-                feature['properties']['selectedColor'] = feature['properties']['color_2']
-            elif 'color_3' in selected_colors:
-                feature['properties']['selectedColor'] = '#0000ff'
-        else:
-            feature['properties']['selectedColor'] = '#6baed6'  # Default color
+        feature_colors = []
 
+        # Iterate over the selected column names (e.g., "hospital") and gather colors
+        for column in selected_colors:
+            # Append the mode of transport (e.g., "hospital_bike" if the mode is "bike")
+            column_with_mode = f"{column}_{transport_mode}"
+            
+            # Print the column name to debug
+            print(f"Accessing column: {column_with_mode}")
+            
+            # Get the color stored in the feature's specific column (e.g., "hospital_bike")
+            color = feature['properties'].get(column_with_mode)
+            if color in color_priority:
+                feature_colors.append(color)
+
+        # Prioritize the colors: choose the highest priority color (first match in color_priority)
+        if feature_colors:
+            # Choose the best color based on priority
+            for color in color_priority:
+                if color in feature_colors:
+                    feature['properties']['selectedColor'] = color
+                    break
+        else:
+            feature['properties']['selectedColor'] = '#6baed6'  # Default color if no selection
+
+    # Ensure geojson is updated with the selected color
     return geojson, map_points
+
 
 if __name__ == "__main__":
     app.run_server(debug=False)
