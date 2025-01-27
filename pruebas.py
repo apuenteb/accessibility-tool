@@ -49,8 +49,10 @@ def get_info(feature=None, selected_pois=None, transport_mode="walk"):
                 # Get the time for this POI and mode of transport
                 time = row.get(column_with_mode).iloc[0] if column_with_mode in row.columns else "N/A"
                 
+                poi_label = layer_labels.get(column, column.replace("_", " ").capitalize())
+
                 # Add the time info to the list
-                poi_times.append(html.P([html.B(column.capitalize()), f": {time} minutes"]))
+                poi_times.append(html.P([html.B(poi_label), f": {time} minutes"]))
     
     # Build the HTML output
     return [
@@ -281,6 +283,23 @@ bike_layers=[
 religious_layers = [
     {"label": "Religious Centers", "checked": False},
 ]
+
+# Combined for other uses
+all_layers = [
+        eat_layers, healthcare_layers, leisure_layers, professional_layers,
+        pharmacy_layers, service_layers, hotel_layers, consumergoods_layers,
+        durablegoods_layers, grocery_layers, cultural_layers, entertainment_layers,
+        leisurewellness_layers, train_layers, bus_layers, bike_layers, religious_layers
+    ]
+
+layer_labels = {}
+
+# Iterate through each group of layers in all_layers
+for layer_group in all_layers:
+    for layer in layer_group:
+        # Ensure the layer contains the 'value' and 'label' keys
+        if "value" in layer and "label" in layer:
+            layer_labels[layer["value"]] = layer["label"]
 
 poi_menu = html.Div(
     dbc.Accordion(
@@ -772,14 +791,6 @@ def update_color_and_map(n_clicks, checked_values, transport_mode):
 
     # Define color priority in order from worst to best
     color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
-    
-    # Combine all layers into one list (in the same order as the checkboxes)
-    all_layers = [
-        eat_layers, healthcare_layers, leisure_layers, professional_layers,
-        pharmacy_layers, service_layers, hotel_layers, consumergoods_layers,
-        durablegoods_layers, grocery_layers, cultural_layers, entertainment_layers,
-        leisurewellness_layers, train_layers, bus_layers, bike_layers, religious_layers
-    ]
     
     selected_pois = []  # To store the selected colors
     map_points = []  # To store the map points
