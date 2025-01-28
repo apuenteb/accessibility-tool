@@ -8,7 +8,6 @@ import json
 import dash_leaflet.express as dlx
 import pandas as pd
 
-
 def get_info(feature=None, selected_pois=None, transport_mode="walk"):
     # Default header when no feature is hovered
     header = [html.H4("Hover over a block for details")]
@@ -653,7 +652,7 @@ demog_menu = dmc.MantineProvider(
                 [dmc.Radio(label, value=value) for value, label in data_demog],
                 my=10,
             ),
-            id="radiogroup-2",
+            id="demog-menu",
             value="choiceA",
             label="Select the demographic data to display",
             size="sm",
@@ -666,6 +665,7 @@ buttons = dmc.MantineProvider(
     children=[
         dmc.Group([
         dmc.Button("Apply", variant="filled", size="md", id="apply-button"),
+        dmc.Button("Reset", variant="filled", size="md", id="reset-button"),
     ],
         id="button-group",
         gap=40,
@@ -682,6 +682,23 @@ colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340', 
 ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+"]
 colorbar = dlx.categorical_colorbar(categories=ctg, colorscale=colorscale, width=300, height=30, position="bottomright")
 
+buttons_comarcas = dmc.MantineProvider(
+    children=[
+        dmc.Group([
+        dmc.Button("Donostialdea", variant="filled", size="md", id="donostia-button"),
+        dmc.Button("Debabarrena", variant="filled", size="md", id="debab-button"),
+        dmc.Button("Debagoiena", variant="filled", size="md", id="debag-button"),
+        dmc.Button("Bidasoaldea", variant="filled", size="md", id="bidasoa-button"),
+        dmc.Button("Goierri", variant="filled", size="md", id="goierri-button"),
+        dmc.Button("Urola Kosta", variant="filled", size="md", id="urolak-button"),
+        dmc.Button("Tolosaldea", variant="filled", size="md", id="tolosa-button"),
+    ],
+        id="buttons-comarca",
+        gap=20,
+        justify="center",
+    )
+    ]
+)
 
 # Layout
 app.layout = html.Div(
@@ -703,6 +720,7 @@ app.layout = html.Div(
             zoom=11,
             style={"height": "100vh", "width": "100%"},
             zoomControl=False,  # Disable default zoom control
+            id="map",
         ),
         # Sidebar Container
         html.Div(
@@ -762,6 +780,21 @@ app.layout = html.Div(
         ),
         info,
         dcc.Store(id="selected-pois", data=[]),  # Store for POIs (empty list as default)
+        html.Div(
+            [
+                buttons_comarcas,
+            ],
+            style={
+                "position": "absolute",
+                "top": "10px",
+                "left": "350px",
+                "width": "1200px",
+                "zIndex": 1000,
+                "padding": "10px",
+                "borderRadius": "5px",
+                
+            },
+        ),
     ]
 )
 
@@ -847,6 +880,38 @@ def update_color_and_map(n_clicks, checked_values, transport_mode):
 
     # Ensure geojson is updated with the selected color
     return geojson, map_points, selected_pois
+
+@app.callback(
+    Output("map", "viewport"),
+    [
+        Input("donostia-button", "n_clicks"),
+        Input("debab-button", "n_clicks"),
+        Input("debag-button", "n_clicks"),
+        Input("bidasoa-button", "n_clicks"),
+        Input("goierri-button", "n_clicks"),
+        Input("urolak-button", "n_clicks"),
+        Input("tolosa-button", "n_clicks"),
+    ],
+    prevent_initial_call=True
+)
+def fly_to_region(*_):
+    button_id = ctx.triggered_id  # Gets the ID of the button that triggered the callback
+
+    if button_id == "donostia-button":
+        return dict(center=[43.289754, -1.986536], zoom=13, transition="flyTo")
+    elif button_id == "debab-button":
+        return dict(center=[43.245188, -2.378489], zoom=13, transition="flyTo")
+    elif button_id == "debag-button":
+        return dict(center=[43.064501, -2.454893], zoom=13, transition="flyTo")
+    elif button_id == "bidasoa-button":
+        return dict(center=[43.339777, -1.800981], zoom=13, transition="flyTo")
+    elif button_id == "goierri-button":
+        return dict(center=[43.022608, -2.241060], zoom=13, transition="flyTo")
+    elif button_id == "urolak-button":
+        return dict(center=[43.237423, -2.207675], zoom=13, transition="flyTo")
+    elif button_id == "tolosa-button":
+        return dict(center=[43.134334, -2.075681], zoom=13, transition="flyTo")
+    return dash.no_update  # Fallback in case no button was clicked
 
 if __name__ == "__main__":
     app.run_server(debug=False)
