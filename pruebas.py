@@ -822,6 +822,7 @@ def info_hover(feature, selected_pois, transport_mode):
         Output("selected-pois", "data"),  # Update selected POIs in the Store
         Output("transport-choice", "value"),  # Reset transport choice
         Output({"type": ALL, "index": ALL}, "checked"),  # Reset POI checkboxes
+        Output("demographics-choice", "value"),  # Reset demographic choice
     ],
     [
         Input("apply-button", "n_clicks"),  # Trigger on Apply button click
@@ -838,7 +839,7 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
     # Determine which button was clicked
     ctx = dash.callback_context
     if not ctx.triggered:
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, [dash.no_update] * len(checked_values)
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, [dash.no_update] * len(checked_values), dash.no_update
 
     triggered_id = ctx.triggered_id
 
@@ -890,24 +891,24 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
                 opacity_column = f"{selected_demographic}"
                 opacity = feature['properties'].get(opacity_column)
                 if opacity is not None:
-                    print(type(opacity))
                     feature['properties']['selectedOpacity'] = opacity
-                    print(f"Selected opacity: {opacity}. CUSEC: {feature['properties']['CUSEC']}")
+                else:
+                    feature['properties']['selectedOpacity'] = 0.4  # Default value if opacity is not found
             else:
                 feature['properties']['selectedOpacity'] = 0.4  # Default opacity if no demographic selected
-                print("No demographic selected. Setting opacity to default 0.4")
 
-        return geojson, map_points, selected_pois, transport_mode, [dash.no_update] * len(checked_values)
+        return geojson, map_points, selected_pois, transport_mode, [dash.no_update] * len(checked_values), selected_demographic
 
     elif triggered_id == "reset-button":
         # Reset button logic
         default_transport_mode = "walk"  # Replace with your default value for transport mode
         default_checkboxes = [False] * len(checked_values)
-        default_demographic = None
+        default_demographic = None  # Reset demographic choice
 
-        # Clear `selectedColor` for all features in the GeoJSON
+        # Clear `selectedColor` and `selectedOpacity` for all features in the GeoJSON
         for feature in geojson['features']:
-            feature['properties']['selectedColor'] = None  # Or replace with a neutral default color, e.g., '#6baed6'
+            feature['properties']['selectedColor'] = None  # Or replace with a neutral default color
+            feature['properties']['selectedOpacity'] = 0.4  # Reset opacity to default
 
         # Clear map points and reset controls
         return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
