@@ -8,7 +8,10 @@ import json
 import dash_leaflet.express as dlx
 import pandas as pd
 
-def get_info(feature=None, selected_pois=None, transport_mode="walk"):
+# load csv into pandas dataframe
+TIME_DATA = pd.read_csv('assets/prueba.csv', dtype={"Erreferentz": str})
+
+def get_info(feature=None, selected_pois=None, transport_mode="walk", time_data=TIME_DATA):
     # Default header when no feature is hovered
     header = [html.H4("Hover over a block for details")]
     if not feature:
@@ -22,9 +25,6 @@ def get_info(feature=None, selected_pois=None, transport_mode="walk"):
         transport_msg = html.B("Public transit time to:")
     elif transport_mode == "car":
         transport_msg = html.B("Driving time to:")
-    
-    # Load the CSV file into a pandas DataFrame
-    time_data = pd.read_csv('assets/prueba.csv', dtype={"Erreferentz": str})
     
     # Extract properties from the feature
     municipio = feature["properties"].get("Municipio", "Unknown")
@@ -811,21 +811,15 @@ def info_hover(feature, selected_pois, transport_mode):
 
 
 @app.callback(
-    [
-        Output("geojson-layer", "data"),  # Update GeoJSON layer
-        Output("map-points", "children"),  # Update map points
-        Output("selected-pois", "data"),  # Update selected POIs in the Store
-        Output("transport-choice", "value"),  # Reset transport choice
-        Output({"type": ALL, "index": ALL}, "checked"),  # Reset POI checkboxes
-    ],
-    [
-        Input("apply-button", "n_clicks"),  # Trigger on Apply button click
-        Input("reset-button", "n_clicks"),  # Trigger on Reset button click
-    ],
-    [
-        State({"type": ALL, "index": ALL}, "checked"),  # Read checkbox states
-        State("transport-choice", "value"),  # Read mode of transport selection
-    ],
+    [Output("geojson-layer", "data"),  # Update GeoJSON layer
+     Output("map-points", "children"),  # Update map points
+     Output("selected-pois", "data"),  # Update selected POIs in the Store
+     Output("transport-choice", "value"),  # Reset transport choice
+     Output({"type": ALL, "index": ALL}, "checked"),],  # Reset POI checkboxes
+    [Input("apply-button", "n_clicks"),  # Trigger on Apply button click
+     Input("reset-button", "n_clicks"),],  # Trigger on Reset button click
+    [State({"type": ALL, "index": ALL}, "checked"),  # Read checkbox states
+     State("transport-choice", "value"),],  # Read mode of transport selection
     prevent_initial_call=True,
 )
 def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_mode):
@@ -892,8 +886,6 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
 
         # Clear map points and reset controls
         return geojson, [], [], default_transport_mode, default_checkboxes
-
-
 
 @app.callback(
     Output("map", "viewport"),
