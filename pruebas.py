@@ -14,6 +14,7 @@ import pandas as pd
 
 # load csv into pandas dataframe
 TIME_DATA = pd.read_csv('assets/prueba.csv', dtype={"Erreferentz": str})
+demog_data = pd.read_csv('assets/buildings_demographics.csv', dtype={"Erreferentz": str, "CUSEC": str, 'total_women': float})
 
 def get_info(feature=None, selected_pois=None, transport_mode="walk", time_data=TIME_DATA):
     # Default header when no feature is hovered
@@ -76,12 +77,13 @@ info = html.Div(children=get_info(), id="info", className="info",
 visual_style = assign(""" 
     function(feature) {
         const selectedColor = feature.properties.selectedColor || '#6baed6'; // Default color (blue)
+        const selectedOpacity = feature.properties.selectedOpacity || 0.4; // Default color (blue)
         return {
             color: '#3182bd',
             weight: 2,
             opacity: 0.8,
             fillColor: selectedColor,
-            fillOpacity: 0.4
+            fillOpacity: selectedOpacity
         };
     }
 """)
@@ -646,7 +648,7 @@ mt_menu = dmc.MantineProvider(
     ]
 )
 
-data_demog = [["choiceA", "Population Density"], ["choiceB", "Foreign Population"], ["choiceC", "Income Level"]]
+data_demog = [["total_women", "Female Population Density"], ["choiceB", "Foreign Population"], ["choiceC", "Income Level"]]
 
 # Define the second radio group as a separate component
 demog_menu = dmc.MantineProvider(
@@ -656,8 +658,8 @@ demog_menu = dmc.MantineProvider(
                 [dmc.Radio(label, value=value) for value, label in data_demog],
                 my=10,
             ),
-            id="demog-menu",
-            value="choiceA",
+            id="demographics-choice",
+            value=None,
             label="Select the demographic data to display",
             size="sm",
             mb=10,
@@ -815,18 +817,25 @@ def info_hover(feature, selected_pois, transport_mode):
 
 
 @app.callback(
-    [Output("geojson-layer", "data"),  # Update GeoJSON layer
-     Output("map-points", "children"),  # Update map points
-     Output("selected-pois", "data"),  # Update selected POIs in the Store
-     Output("transport-choice", "value"),  # Reset transport choice
-     Output({"type": ALL, "index": ALL}, "checked"),],  # Reset POI checkboxes
-    [Input("apply-button", "n_clicks"),  # Trigger on Apply button click
-     Input("reset-button", "n_clicks"),],  # Trigger on Reset button click
-    [State({"type": ALL, "index": ALL}, "checked"),  # Read checkbox states
-     State("transport-choice", "value"),],  # Read mode of transport selection
+    [
+        Output("geojson-layer", "data"),  # Update GeoJSON layer
+        Output("map-points", "children"),  # Update map points
+        Output("selected-pois", "data"),  # Update selected POIs in the Store
+        Output("transport-choice", "value"),  # Reset transport choice
+        Output({"type": ALL, "index": ALL}, "checked"),  # Reset POI checkboxes
+    ],
+    [
+        Input("apply-button", "n_clicks"),  # Trigger on Apply button click
+        Input("reset-button", "n_clicks"),  # Trigger on Reset button click
+    ],
+    [
+        State({"type": ALL, "index": ALL}, "checked"),  # Read checkbox states
+        State("transport-choice", "value"),  # Read mode of transport selection
+        State("demographics-choice", "value"),  # Read selected demographic group
+    ],
     prevent_initial_call=True,
 )
-def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_mode):
+def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_mode, selected_demographic):
     # Determine which button was clicked
     ctx = dash.callback_context
     if not ctx.triggered:
@@ -835,12 +844,13 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
     triggered_id = ctx.triggered_id
 
     if triggered_id == "apply-button":
-        # Apply button logic
+        # Logic for Apply button
         color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
         selected_pois = []
         map_points = []
-        layer_idx = 0
 
+        # Loop through layers and collect selected POIs and points
+        layer_idx = 0
         for layer_group in all_layers:
             for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
                 if checked:
@@ -860,6 +870,7 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
                                 )
             layer_idx += len(layer_group)
 
+        # Update GeoJSON features with selected colors, opacity, and demographic data
         for feature in geojson['features']:
             feature_colors = []
             for column in selected_pois:
@@ -868,28 +879,52 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
                 if color in color_priority:
                     feature_colors.append(color)
 
+            # Assign the highest priority color
             if feature_colors:
-                for color in color_priority:
-                    if color in feature_colors:
-                        feature['properties']['selectedColor'] = color
-                        break
+                selected_color = next((color for color in color_priority if color in feature_colors), '#6baed6')
+                feature['properties']['selectedColor'] = selected_color
             else:
                 feature['properties']['selectedColor'] = '#6baed6'
+
+            # Handle demographic opacity if a demographic is selected
+        if selected_demographic:
+            erreferentz = feature['properties'].get('Erreferentz')
+            if erreferentz in demog_data['Erreferentz'].values:
+                raw_opacity = demog_data.loc[demog_data['Erreferentz'] == erreferentz, selected_demographic].values[0]
+                try:
+                    # Cast to float and ensure it's within 0.0 to 1.0
+                    opacity_value = float(raw_opacity)
+                    if 0.0 <= opacity_value <= 1.0:
+                        feature['properties']['selectedOpacity'] = round(opacity_value, 2)
+                        print(f"Erreferentz: {erreferentz}, Selected Opacity: {feature['properties']['selectedOpacity']}")
+                    else:
+                        feature['properties']['selectedOpacity'] = 0.2  # Default opacity if value is out of range
+                except (ValueError, TypeError):
+                    feature['properties']['selectedOpacity'] = 0.2  # Default opacity if casting fails
+            else:
+                feature['properties']['selectedOpacity'] = 0.2  # Default opacity if not found
+        else:
+            feature['properties']['selectedOpacity'] = 0.2  # Default opacity if no demographic selected
+        
+        
+
 
         # Return updated outputs for Apply button
         return geojson, map_points, selected_pois, dash.no_update, [dash.no_update] * len(checked_values)
 
     elif triggered_id == "reset-button":
-        # Reset button logic
+        # Logic for Reset button
         default_transport_mode = "walk"  # Replace with your default value for transport mode
         default_checkboxes = [False] * len(checked_values)
 
-        # Clear `selectedColor` for all features in the GeoJSON
+        # Clear `selectedColor`, `selectedOpacity`, and demographic values for all features in the GeoJSON
         for feature in geojson['features']:
-            feature['properties']['selectedColor'] = None  # Or replace with a neutral default color, e.g., '#6baed6'
+            feature['properties']['selectedColor'] = None  # Reset to default or neutral color
+            feature['properties']['selectedOpacity'] = None
 
         # Clear map points and reset controls
         return geojson, [], [], default_transport_mode, default_checkboxes
+
 
 @app.callback(
     Output("map", "viewport"),
