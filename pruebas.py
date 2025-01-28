@@ -835,9 +835,6 @@ def info_hover(feature, selected_pois, transport_mode):
     prevent_initial_call=True,
 )
 def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_mode, selected_demographic):
-    # Debugging print statement
-    print(f"Triggered ID: {ctx.triggered_id}")
-
     # Determine which button was clicked
     ctx = dash.callback_context
     if not ctx.triggered:
@@ -847,8 +844,6 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
 
     if triggered_id == "apply-button":
         # Logic for Apply button
-        print(f"Apply button clicked")
-
         color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
         selected_pois = []
         map_points = []
@@ -874,9 +869,8 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
                                 )
             layer_idx += len(layer_group)
 
-        # Update GeoJSON features with selected colors and demographic data
-        for idx, feature in enumerate(geojson['features']):
-            print(f"Processing feature {idx}")
+        # Update GeoJSON features with selected colors, opacity, and demographic data
+        for feature in geojson['features']:
             feature_colors = []
             for column in selected_pois:
                 column_with_mode = f"{column}_{transport_mode}"
@@ -891,24 +885,32 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
             else:
                 feature['properties']['selectedColor'] = '#6baed6'
 
-            # Add demographic data as opacity
+            # Handle demographic opacity if a demographic is selected
             if selected_demographic:
-                print(f"Adding demographic data for {selected_demographic}")
-                feature['properties'][f'{selected_demographic}'] = feature['properties'].get(f'{selected_demographic}', 1)
+                opacity_column = f"{selected_demographic}"
+                opacity = feature['properties'].get(opacity_column)
+                if opacity is not None:
+                    print(type(opacity))
+                    feature['properties']['selectedOpacity'] = opacity
+                    print(f"Selected opacity: {opacity}. CUSEC: {feature['properties']['CUSEC']}")
+            else:
+                feature['properties']['selectedOpacity'] = 0.4  # Default opacity if no demographic selected
+                print("No demographic selected. Setting opacity to default 0.4")
 
-        print(f"Returning updated GeoJSON with {len(geojson['features'])} features")
+        return geojson, map_points, selected_pois, transport_mode, [dash.no_update] * len(checked_values)
 
-        return geojson, map_points, selected_pois, transport_mode, [False] * len(checked_values)
-    
     elif triggered_id == "reset-button":
-        print(f"Reset button clicked")
-        return geojson, [], [], None, [False] * len(checked_values)
+        # Reset button logic
+        default_transport_mode = "walk"  # Replace with your default value for transport mode
+        default_checkboxes = [False] * len(checked_values)
+        default_demographic = None
 
-    
-    elif triggered_id == "reset-button":
-        # Reset logic for Reset button
-        return geojson, [], [], None, [False] * len(checked_values)
+        # Clear `selectedColor` for all features in the GeoJSON
+        for feature in geojson['features']:
+            feature['properties']['selectedColor'] = None  # Or replace with a neutral default color, e.g., '#6baed6'
 
+        # Clear map points and reset controls
+        return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
 
 
 @app.callback(
