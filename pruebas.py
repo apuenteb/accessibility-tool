@@ -8,6 +8,8 @@ import json
 import dash_leaflet.express as dlx
 import pandas as pd
 
+# pip install -r requirements.txt
+
 # load csv into pandas dataframe
 TIME_DATA = pd.read_csv('assets/prueba.csv', dtype={"Erreferentz": str})
 
