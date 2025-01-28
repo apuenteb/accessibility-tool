@@ -14,7 +14,6 @@ import pandas as pd
 
 # load csv into pandas dataframe
 TIME_DATA = pd.read_csv('assets/prueba.csv', dtype={"Erreferentz": str})
-demog_data = pd.read_csv('assets/buildings_demographics.csv', dtype={"Erreferentz": str, "CUSEC": str, 'total_women': float})
 
 def get_info(feature=None, selected_pois=None, transport_mode="walk", time_data=TIME_DATA):
     # Default header when no feature is hovered
@@ -149,7 +148,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles
 server = app.server
 
 # Load geojson polygons
-with open("assets/prueba.geojson", "r") as f:
+with open("assets/prueba_demog.geojson", "r") as f:
     geojson = json.load(f)
 
 # Set the initial selected color to blue (default)
@@ -836,6 +835,9 @@ def info_hover(feature, selected_pois, transport_mode):
     prevent_initial_call=True,
 )
 def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_mode, selected_demographic):
+    # Debugging print statement
+    print(f"Triggered ID: {ctx.triggered_id}")
+
     # Determine which button was clicked
     ctx = dash.callback_context
     if not ctx.triggered:
@@ -845,6 +847,8 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
 
     if triggered_id == "apply-button":
         # Logic for Apply button
+        print(f"Apply button clicked")
+
         color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
         selected_pois = []
         map_points = []
@@ -870,8 +874,9 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
                                 )
             layer_idx += len(layer_group)
 
-        # Update GeoJSON features with selected colors, opacity, and demographic data
-        for feature in geojson['features']:
+        # Update GeoJSON features with selected colors and demographic data
+        for idx, feature in enumerate(geojson['features']):
+            print(f"Processing feature {idx}")
             feature_colors = []
             for column in selected_pois:
                 column_with_mode = f"{column}_{transport_mode}"
@@ -886,44 +891,24 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
             else:
                 feature['properties']['selectedColor'] = '#6baed6'
 
-            # Handle demographic opacity if a demographic is selected
-        if selected_demographic:
-            erreferentz = feature['properties'].get('Erreferentz')
-            if erreferentz in demog_data['Erreferentz'].values:
-                raw_opacity = demog_data.loc[demog_data['Erreferentz'] == erreferentz, selected_demographic].values[0]
-                try:
-                    # Cast to float and ensure it's within 0.0 to 1.0
-                    opacity_value = float(raw_opacity)
-                    if 0.0 <= opacity_value <= 1.0:
-                        feature['properties']['selectedOpacity'] = round(opacity_value, 2)
-                        print(f"Erreferentz: {erreferentz}, Selected Opacity: {feature['properties']['selectedOpacity']}")
-                    else:
-                        feature['properties']['selectedOpacity'] = 0.2  # Default opacity if value is out of range
-                except (ValueError, TypeError):
-                    feature['properties']['selectedOpacity'] = 0.2  # Default opacity if casting fails
-            else:
-                feature['properties']['selectedOpacity'] = 0.2  # Default opacity if not found
-        else:
-            feature['properties']['selectedOpacity'] = 0.2  # Default opacity if no demographic selected
-        
-        
+            # Add demographic data as opacity
+            if selected_demographic:
+                print(f"Adding demographic data for {selected_demographic}")
+                feature['properties'][f'{selected_demographic}'] = feature['properties'].get(f'{selected_demographic}', 1)
 
+        print(f"Returning updated GeoJSON with {len(geojson['features'])} features")
 
-        # Return updated outputs for Apply button
-        return geojson, map_points, selected_pois, dash.no_update, [dash.no_update] * len(checked_values)
-
+        return geojson, map_points, selected_pois, transport_mode, [False] * len(checked_values)
+    
     elif triggered_id == "reset-button":
-        # Logic for Reset button
-        default_transport_mode = "walk"  # Replace with your default value for transport mode
-        default_checkboxes = [False] * len(checked_values)
+        print(f"Reset button clicked")
+        return geojson, [], [], None, [False] * len(checked_values)
 
-        # Clear `selectedColor`, `selectedOpacity`, and demographic values for all features in the GeoJSON
-        for feature in geojson['features']:
-            feature['properties']['selectedColor'] = None  # Reset to default or neutral color
-            feature['properties']['selectedOpacity'] = None
+    
+    elif triggered_id == "reset-button":
+        # Reset logic for Reset button
+        return geojson, [], [], None, [False] * len(checked_values)
 
-        # Clear map points and reset controls
-        return geojson, [], [], default_transport_mode, default_checkboxes
 
 
 @app.callback(
