@@ -811,75 +811,89 @@ def info_hover(feature, selected_pois, transport_mode):
 
 
 @app.callback(
-    [Output("geojson-layer", "data"),  # Update GeoJSON layer
-     Output("map-points", "children"),  # Update map points
-     Output("selected-pois", "data")],  # Update selected POIs in the Store
-    [Input("apply-button", "n_clicks")],  # Trigger on Apply button click
-    [State({"type": ALL, "index": ALL}, "checked"),  # Read checkbox states
-     State("transport-choice", "value")]  # Read mode of transport selection
+    [
+        Output("geojson-layer", "data"),  # Update GeoJSON layer
+        Output("map-points", "children"),  # Update map points
+        Output("selected-pois", "data"),  # Update selected POIs in the Store
+        Output("transport-choice", "value"),  # Reset transport choice
+        Output({"type": ALL, "index": ALL}, "checked"),  # Reset POI checkboxes
+    ],
+    [
+        Input("apply-button", "n_clicks"),  # Trigger on Apply button click
+        Input("reset-button", "n_clicks"),  # Trigger on Reset button click
+    ],
+    [
+        State({"type": ALL, "index": ALL}, "checked"),  # Read checkbox states
+        State("transport-choice", "value"),  # Read mode of transport selection
+    ],
+    prevent_initial_call=True,
 )
-def update_color_and_map(n_clicks, checked_values, transport_mode):
-    if not n_clicks:  # Prevent callback from running before Apply is clicked
-        return dash.no_update, dash.no_update, dash.no_update
+def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_mode):
+    # Determine which button was clicked
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, [dash.no_update] * len(checked_values)
 
-    # Define color priority in order from worst to best
-    color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
-    
-    selected_pois = []  # To store the selected colors
-    map_points = []  # To store the map points
-    layer_idx = 0  # To track the index across all layers
-    
-    # Iterate over each layer group (each list of layers)
-    for layer_group in all_layers:
-        for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
-            if checked:
-                layer = layer_group[idx]
-                selected_pois.append(layer["value"])  # Get the column name (e.g., "hospital")
-                
-                # Process map points for this checked layer
-                for feature in layer["geojson"]["features"]:
-                    # Validate coordinates
-                    coordinates = feature.get("geometry", {}).get("coordinates")
-                    if coordinates and len(coordinates) >= 2:
-                        lon, lat = coordinates
-                        if lat is not None and lon is not None:
-                            map_points.append(
-                                dl.Marker(
-                                    position=[lat, lon],  # Use [lat, lon]
-                                    children=[dl.Popup(layer["label"])]
+    triggered_id = ctx.triggered_id
+
+    if triggered_id == "apply-button":
+        # Apply button logic
+        color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
+        selected_pois = []
+        map_points = []
+        layer_idx = 0
+
+        for layer_group in all_layers:
+            for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
+                if checked:
+                    layer = layer_group[idx]
+                    selected_pois.append(layer["value"])
+
+                    for feature in layer["geojson"]["features"]:
+                        coordinates = feature.get("geometry", {}).get("coordinates")
+                        if coordinates and len(coordinates) >= 2:
+                            lon, lat = coordinates
+                            if lat is not None and lon is not None:
+                                map_points.append(
+                                    dl.Marker(
+                                        position=[lat, lon],
+                                        children=[dl.Popup(layer["label"])],
+                                    )
                                 )
-                            )
-        layer_idx += len(layer_group)  # Move the index forward by the number of layers in the group
+            layer_idx += len(layer_group)
 
-    # Now prioritize the colors for each feature
-    for feature in geojson['features']:
-        feature_colors = []
+        for feature in geojson['features']:
+            feature_colors = []
+            for column in selected_pois:
+                column_with_mode = f"{column}_{transport_mode}"
+                color = feature['properties'].get(column_with_mode)
+                if color in color_priority:
+                    feature_colors.append(color)
 
-        # Iterate over the selected column names (e.g., "hospital") and gather colors
-        for column in selected_pois:
-            # Append the mode of transport (e.g., "hospital_bike" if the mode is "bike")
-            column_with_mode = f"{column}_{transport_mode}"
-            
-            # Print the column name to debug
-            print(f"Accessing column: {column_with_mode}")
-            
-            # Get the color stored in the feature's specific column (e.g., "hospital_bike")
-            color = feature['properties'].get(column_with_mode)
-            if color in color_priority:
-                feature_colors.append(color)
+            if feature_colors:
+                for color in color_priority:
+                    if color in feature_colors:
+                        feature['properties']['selectedColor'] = color
+                        break
+            else:
+                feature['properties']['selectedColor'] = '#6baed6'
 
-        # Prioritize the colors: choose the highest priority color (first match in color_priority)
-        if feature_colors:
-            # Choose the best color based on priority
-            for color in color_priority:
-                if color in feature_colors:
-                    feature['properties']['selectedColor'] = color
-                    break
-        else:
-            feature['properties']['selectedColor'] = '#6baed6'  # Default color if no selection
+        # Return updated outputs for Apply button
+        return geojson, map_points, selected_pois, dash.no_update, [dash.no_update] * len(checked_values)
 
-    # Ensure geojson is updated with the selected color
-    return geojson, map_points, selected_pois
+    elif triggered_id == "reset-button":
+        # Reset button logic
+        default_transport_mode = "walk"  # Replace with your default value for transport mode
+        default_checkboxes = [False] * len(checked_values)
+
+        # Clear `selectedColor` for all features in the GeoJSON
+        for feature in geojson['features']:
+            feature['properties']['selectedColor'] = None  # Or replace with a neutral default color, e.g., '#6baed6'
+
+        # Clear map points and reset controls
+        return geojson, [], [], default_transport_mode, default_checkboxes
+
+
 
 @app.callback(
     Output("map", "viewport"),
