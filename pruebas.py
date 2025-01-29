@@ -79,7 +79,7 @@ visual_style = assign("""
         const selectedOpacity = feature.properties.selectedOpacity || 0.4; // Default color (blue)
         return {
             color: '#3182bd',
-            weight: 2,
+            weight: 0.5,
             opacity: 0.8,
             fillColor: selectedColor,
             fillOpacity: selectedOpacity
