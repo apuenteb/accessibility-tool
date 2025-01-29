@@ -15,6 +15,14 @@ import pandas as pd
 # load csv into pandas dataframe
 TIME_DATA = pd.read_csv('assets/prueba.csv', dtype={"Erreferentz": str})
 
+# Custom icon (using local assets)
+custom_icon = dict(
+    iconUrl='/assets/new-moon.png',  # Local icon
+    iconSize=[5, 5], # size in px
+    iconAnchor=[2.5, 2.5], # point of the icon which will correspond to marker's location, as we have a circle, the half of the size
+)
+
+
 def get_info(feature=None, selected_pois=None, transport_mode="walk", time_data=TIME_DATA):
     # Default header when no feature is hovered
     header = [html.H4("Hover over a block for details")]
@@ -872,6 +880,7 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
                                     dl.Marker(
                                         position=[lat, lon],
                                         children=[dl.Popup(layer["label"])],
+                                        icon=custom_icon,
                                     )
                                 )
             layer_idx += len(layer_group)
