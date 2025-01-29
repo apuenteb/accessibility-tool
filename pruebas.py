@@ -31,9 +31,8 @@ def get_info(feature=None, selected_pois=None, transport_mode="walk", time_data=
         transport_msg = html.B("Driving time to:")
     
     # Extract properties from the feature
-    municipio = feature["properties"].get("Municipio", "Unknown")
-    density_str = feature["properties"].get("density", "N/A")
-    cusec = feature["properties"].get("CUSEC", "N/A")
+    #municipio = feature["properties"].get("Municipio", "Unknown")
+   # cusec = feature["properties"].get("CUSEC", "N/A")
     ref = feature["properties"].get("Erreferentz", None)
     
     # Ensure `ref` is a string for comparison
@@ -69,8 +68,21 @@ def get_info(feature=None, selected_pois=None, transport_mode="walk", time_data=
     ]
 
 # Create info control.
-info = html.Div(children=get_info(), id="info", className="info",
-                style={"position": "absolute", "top": "10px", "right": "10px", "zIndex": "1000"})
+info = html.Div(
+    children=get_info(), 
+    id="info", 
+    className="info",
+    style={
+        "position": "absolute", 
+        "top": "10px", 
+        "right": "10px", 
+        "zIndex": "1000", 
+        "backgroundColor": "rgba(237, 237, 237, 0.8)",  # Semi-transparent black background
+        "padding": "10px",  # Optional: Add some padding for better readability
+        "borderRadius": "5px",  # Optional: Rounded corners
+        "border": "1px solid #ccc"
+    }
+)
 
 # styling of the polygons (default & when hovered)
 visual_style = assign(""" 
