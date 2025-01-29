@@ -56,13 +56,7 @@ window.dashExtensions = Object.assign({}, window.dashExtensions, {
                 });
             });
 
-            // Tooltip
-            layer.bindTooltip(
-                `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`, {
-                    permanent: false,
-                    direction: 'top'
-                }
-            );
+
         }
 
     }

@@ -131,12 +131,6 @@ on_each_feature = assign("""
                 }
             });
         });
-
-        // Tooltip
-        layer.bindTooltip(
-            `<strong>${feature.properties['CUSEC']}</strong><br>Municipio: ${feature.properties['Municipio']}`,
-            { permanent: false, direction: 'top' }
-        );
     }
 """)
 
