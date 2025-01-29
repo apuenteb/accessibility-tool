@@ -8,8 +8,6 @@ import json
 import dash_leaflet.express as dlx
 import pandas as pd
 
-# trying
-
 # python -m venv venv
 # On Windows: venv\Scripts\activate
 # pip install -r requirements.txt
