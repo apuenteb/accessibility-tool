@@ -10,6 +10,7 @@ import pandas as pd
 
 # python -m venv venv
 # On Windows: venv\Scripts\activate
+# pip freeze > requirements.txt
 # pip install -r requirements.txt
 
 # load csv into pandas dataframe
