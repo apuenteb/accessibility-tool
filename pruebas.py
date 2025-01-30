@@ -13,13 +13,13 @@ import pandas as pd
 # pip install -r requirements.txt
 
 # load csv into pandas dataframe
-TIME_DATA = pd.read_csv('assets/prueba.csv', dtype={"Erreferentz": str})
+TIME_DATA = pd.read_csv('/assets/csv_files/prueba.csv', dtype={"Erreferentz": str})
 
 # Custom icon (using local assets)
 custom_icon = dict(
-    iconUrl='/assets/new-moon.png',  # Local icon
-    iconSize=[5, 5], # size in px
-    iconAnchor=[2.5, 2.5], # point of the icon which will correspond to marker's location, as we have a circle, the half of the size
+    iconUrl='/assets/icons/icon_blue1.png',  # Local icon
+    iconSize=[10, 10], # size in px
+    iconAnchor=[5, 5], # point of the icon which will correspond to marker's location, as we have a circle, the half of the size
 )
 
 
@@ -62,7 +62,7 @@ def get_info(feature=None, selected_pois=None, transport_mode="walk", time_data=
                 poi_label = layer_labels.get(column, column.replace("_", " ").capitalize())
 
                 # Add the time info to the list
-                poi_times.append(html.P([html.B(poi_label), f": {time} minutes"]))
+                poi_times.append(html.P([html.B(poi_label), f": {time} minutes"], style={"margin": "0", "padding": "0"}))
     
     # Build the HTML output
     return [
@@ -72,7 +72,9 @@ def get_info(feature=None, selected_pois=None, transport_mode="walk", time_data=
        # html.B("Walk Time: "), f"{walk_time} minutes", html.Br(),
        # html.B("Bike Time: "), f"{bike_time} minutes", html.Br(),
         transport_msg, html.Br(),
-        html.Ul([html.P(poi_time) for poi_time in poi_times])  # Display each selected POI with its time
+        html.Div(
+        [html.Div(poi_time, style={"margin": "0", "padding": "0"}) for poi_time in poi_times],
+        style={"display": "flex", "flex-direction": "column", "gap": "1px"})
     ]
 
 # Create info control.
@@ -85,7 +87,7 @@ info = html.Div(
         "top": "10px", 
         "right": "10px", 
         "zIndex": "1000", 
-        "backgroundColor": "rgba(237, 237, 237, 0.8)",  # Semi-transparent black background
+        "backgroundColor": "rgba(255, 255, 255, 1)",  # Semi-transparent background
         "padding": "10px",  # Optional: Add some padding for better readability
         "borderRadius": "5px",  # Optional: Rounded corners
         "border": "1px solid #ccc"
@@ -162,7 +164,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles
 server = app.server
 
 # Load geojson polygons
-with open("assets/prueba_demog.geojson", "r") as f:
+with open("assets/geojsons/prueba_demog.geojson", "r") as f:
     geojson = json.load(f)
 
 # Set the initial selected color to blue (default)
@@ -170,13 +172,13 @@ for feature in geojson['features']:
     feature['properties']['selectedColor'] = '#6baed6'  # Default color (blue)
 
 # Load POI GeoJSON files
-with open("assets/filtered-centros-educativos.geojson", "r") as f:
+with open("assets/geojsons/filtered-centros-educativos.geojson", "r") as f:
     schools_geojson = json.load(f)
 
-with open("assets/filtered-bibliotecas.geojson", "r") as f:
+with open("assets/geojsons/filtered-bibliotecas.geojson", "r") as f:
     libraries_geojson = json.load(f)
 
-with open("assets/hospitales.geojson", "r") as f:
+with open("assets/geojsons/hospitales.geojson", "r") as f:
     hospitals_geojson = json.load(f)
 
 # Dictionaries by POI categories
@@ -188,8 +190,8 @@ eat_layers = [
 ]
 
 healthcare_layers = [
-    {"label": "Clinics & local healthcare centers", "value":"color_5", "geojson":hospitals_geojson,"checked": False},
-    {"label": "Hospitals", "value":"color_6","geojson":libraries_geojson,"checked": False},
+    {"label": "Clinics & local healthcare centers", "value":"color_5", "geojson":libraries_geojson,"checked": False},
+    {"label": "Hospitals", "value":"color_1","geojson":hospitals_geojson,"checked": False},
     {"label": "Nursing & Residential Care", "checked": False},
     {"label": "Dentists", "checked": False},
     {"label": "Psychologist", "checked": False},
