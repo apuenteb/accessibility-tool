@@ -192,7 +192,7 @@ eat_layers = [
 
 healthcare_layers = [
     {"label": "Clinics & local healthcare centers", "value":"color_5", "geojson":libraries_geojson,"checked": False},
-    {"label": "Hospitals", "value":"color_1","geojson":hospitals_geojson,"checked": False},
+    {"label": "Hospitals", "value":"hospital","geojson":hospitals_geojson,"checked": False},
     {"label": "Nursing & Residential Care", "checked": False},
     {"label": "Dentists", "checked": False},
     {"label": "Psychologist", "checked": False},
