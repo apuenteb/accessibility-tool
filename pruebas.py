@@ -14,7 +14,7 @@ import pandas as pd
 # pip install -r requirements.txt
 
 # load csv into pandas dataframe
-TIME_DATA = pd.read_csv('./assets/csv_files/prueba.csv', dtype={"Erreferentz": str})
+TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Erreferentz": str})
 
 # Custom icon (using local assets)
 custom_icon = dict(
