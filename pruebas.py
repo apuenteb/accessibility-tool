@@ -165,7 +165,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles
 server = app.server
 
 # Load geojson polygons
-with open("assets/geojsons/prueba_demog.geojson", "r") as f:
+with open("assets/geojsons/prueba_demog2.geojson", "r") as f:
     geojson = json.load(f)
 
 # Set the initial selected color to blue (default)
