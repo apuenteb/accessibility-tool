@@ -16,15 +16,7 @@ import pandas as pd
 # load csv into pandas dataframe
 TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Erreferentz": str})
 
-# Custom icon (using local assets)
-custom_icon = dict(
-    iconUrl='/assets/icons/icon_blue1.png',  # Local icon
-    iconSize=[10, 10], # size in px
-    iconAnchor=[5, 5], # point of the icon which will correspond to marker's location, as we have a circle, the half of the size
-)
-
-
-def get_info(feature=None, selected_pois=None, transport_mode="walk", time_data=TIME_DATA):
+def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TIME_DATA):
     # Default header when no feature is hovered
     header = [html.H4("Hover over a block for details")]
     if not feature:
@@ -75,7 +67,8 @@ def get_info(feature=None, selected_pois=None, transport_mode="walk", time_data=
         transport_msg, html.Br(),
         html.Div(
         [html.Div(poi_time, style={"margin": "0", "padding": "0"}) for poi_time in poi_times],
-        style={"display": "flex", "flex-direction": "column", "gap": "1px"})
+        style={"display": "flex", "flex-direction": "column", "gap": "1px"}),
+        html.Div("Referencia: " + ref, style={"margin": "0", "padding": "0"}),
     ]
 
 # Create info control.
@@ -110,52 +103,39 @@ visual_style = assign("""
     }
 """)
 
-# hover interaction
 on_each_feature = assign("""
     function(feature, layer) {
         // Mouseover event
         layer.on('mouseover', function() {
-            const CUSEC = feature.properties['CUSEC'];
-
-            // Highlight all polygons with the same CUSEC
-            this._map.eachLayer((otherLayer) => {
-                if (otherLayer.feature && otherLayer.feature.properties['CUSEC'] === CUSEC) {
-                    if (!otherLayer.options._originalStyle) {
-                        // Save the original style if not already saved
-                        otherLayer.options._originalStyle = {
-                            color: otherLayer.options.color,
-                            weight: otherLayer.options.weight,
-                            opacity: otherLayer.options.opacity,
-                            fillColor: otherLayer.options.fillColor,
-                            fillOpacity: otherLayer.options.fillOpacity,
-                        };
-                    }
-                    otherLayer.setStyle({
-                        color: '#2b5775',
-                        weight: 3,
-                        opacity: 1,
-                        fillOpacity: 0.7
-                    });
-                }
+            if (!layer.options._originalStyle) {
+                // Save the original style if not already saved
+                layer.options._originalStyle = {
+                    color: layer.options.color,
+                    weight: layer.options.weight,
+                    opacity: layer.options.opacity,
+                    fillColor: layer.options.fillColor,
+                    fillOpacity: layer.options.fillOpacity,
+                };
+            }
+            // Apply highlight style only to the hovered feature
+            layer.setStyle({
+                color: '#2b5775',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 0.7
             });
         });
 
         // Mouseout event
         layer.on('mouseout', function() {
-            const CUSEC = feature.properties['CUSEC'];
-
-            // Reset the style of all polygons with the same CUSEC
-            this._map.eachLayer((otherLayer) => {
-                if (otherLayer.feature && otherLayer.feature.properties['CUSEC'] === CUSEC) {
-                    const originalStyle = otherLayer.options._originalStyle;
-                    if (originalStyle) {
-                        otherLayer.setStyle(originalStyle);
-                    }
-                }
-            });
+            if (layer.options._originalStyle) {
+                // Reset the style of the hovered feature
+                layer.setStyle(layer.options._originalStyle);
+            }
         });
     }
-""")
+""");
+
 
 # Dash app (initialize like here always, if not the dmc components don't work, we need to make sure the React version is 18.2.0)
 # React 18 Issue: Dash Mantine Components is based on REACT 18. You must set the env variable REACT_VERSION=18.2.0 before starting up the app.
@@ -164,34 +144,43 @@ _dash_renderer._set_react_version("18.2.0")
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
 server = app.server
 
-# Load geojson polygons
-with open("assets/geojsons/prueba_demog3.geojson", "r") as f:
-    geojson = json.load(f)
+# Custom icon (using local assets)
+custom_icon = dict(
+    iconUrl='/assets/icons/icon_blue1.png',  # Local icon
+    iconSize=[10, 10], # size in px
+    iconAnchor=[5, 5], # point of the icon which will correspond to marker's location, as we have a circle, the half of the size
+)
 
-# Set the initial selected color to blue (default)
-for feature in geojson['features']:
-    feature['properties']['selectedColor'] = '#6baed6'  # Default color (blue)
+# Load geojson polygons
+with open("assets/geojsons/buildings_by_section_colors.geojson", "r") as f:
+    geojson = json.load(f)
 
 # Load POI GeoJSON files
 with open("assets/geojsons/filtered-centros-educativos.geojson", "r") as f:
     schools_geojson = json.load(f)
 
-with open("assets/geojsons/filtered-bibliotecas.geojson", "r") as f:
+with open("assets/geojsons/poi/bibliotecas.geojson", "r") as f:
     libraries_geojson = json.load(f)
 
-with open("assets/geojsons/hospitales.geojson", "r") as f:
+with open("assets/geojsons/poi/hospitales.geojson", "r") as f:
     hospitals_geojson = json.load(f)
+
+with open("assets/geojsons/poi/centros_salud.geojson", "r", encoding="utf-8") as f:
+    centros_salud_geojson = json.load(f)
+
+with open("assets/geojsons/poi/farmacias.geojson", "r", encoding="utf-8") as f:
+    farmacias_geojson = json.load(f)
 
 # Dictionaries by POI categories
 eat_layers = [
-    {"label": "Special Food Services", "value": "color_1", "geojson": schools_geojson, "checked": False},
-    {"label": "Restaurants", "value": "color_2", "geojson": libraries_geojson, "checked": False},
-    {"label": "Cafes & bakeries", "value": "color_3","geojson": hospitals_geojson, "checked": False},
-    {"label": "Bars", "value": "color_4","geojson": hospitals_geojson, "checked": False},
+    {"label": "Special Food Services",  "checked": False},
+    {"label": "Restaurants", "checked": False},
+    {"label": "Cafes & bakeries",  "checked": False},
+    {"label": "Bars", "checked": False},
 ]
 
 healthcare_layers = [
-    {"label": "Clinics & local healthcare centers", "value":"color_5", "geojson":libraries_geojson,"checked": False},
+    {"label": "Clinics & local healthcare centers", "value": "centros_salud", "geojson": centros_salud_geojson,"checked": False},
     {"label": "Hospitals", "value":"hospital","geojson":hospitals_geojson,"checked": False},
     {"label": "Nursing & Residential Care", "checked": False},
     {"label": "Dentists", "checked": False},
@@ -214,7 +203,7 @@ professional_layers = [
 ]
 
 pharmacy_layers = [
-    {"label": "Pharmacy", "checked": False},
+    {"label": "Pharmacy", "value": "farmacia", "geojson": farmacias_geojson,"checked": False},
 ]
 
 service_layers = [
@@ -267,7 +256,7 @@ grocery_layers = [
 
 cultural_layers = [
     {"label": "Art Gallery", "checked": False},
-    {"label": "Library", "checked": False},
+    {"label": "Library", "value":"biblioteca", "geojson":libraries_geojson,"checked": False},
     {"label": "Museum", "checked": False},
 ]
 
@@ -327,7 +316,7 @@ poi_menu = html.Div(
         [
             # Eat Section
             dbc.AccordionItem(
-                dmc.MantineProvider(
+                html.Div(
                     children=[
                         html.H6("Food & Beverage", style={"marginTop": "10px", "marginBottom": "5px"}),
                         html.Div([
@@ -350,7 +339,7 @@ poi_menu = html.Div(
             ),
             # Errands Section
             dbc.AccordionItem(
-                dmc.MantineProvider(
+                html.Div(
                     children=[
                         # Healthcare
                         html.Div([
@@ -428,7 +417,7 @@ poi_menu = html.Div(
             ),
             # Lodging Section
             dbc.AccordionItem(
-                dmc.MantineProvider(
+                html.Div(
                     children=[
                         # Hotel
                         html.Div([
@@ -454,7 +443,7 @@ poi_menu = html.Div(
             ),
             # Shop Section
             dbc.AccordionItem(
-                dmc.MantineProvider(
+                html.Div(
                     children=[
                         # Retail (Consumer Goods)
                         html.Div([
@@ -506,7 +495,7 @@ poi_menu = html.Div(
             ),
             # Recreation Section
             dbc.AccordionItem(
-                dmc.MantineProvider(
+                html.Div(
                     children=[
                         # Cultural
                         html.Div([
@@ -558,7 +547,7 @@ poi_menu = html.Div(
             ),
             # Transport Section
             dbc.AccordionItem(
-                dmc.MantineProvider(
+                html.Div(
                     children=[
                         # Train
                         html.Div([
@@ -610,7 +599,7 @@ poi_menu = html.Div(
             ),
             # Errands Section
             dbc.AccordionItem(
-                dmc.MantineProvider(
+                html.Div(
                     children=[
                         # Religious
                         html.Div([
@@ -649,7 +638,7 @@ poi_menu = html.Div(
 data_mt = [["walk", "Walk"], ["bike", "Bike"], ["pt", "Public Transit"], ["car", "Car"]]
 
 # Define the first radio group as a separate component
-mt_menu = dmc.MantineProvider(
+mt_menu = html.Div(
     children=[
         dmc.RadioGroup(
             children=dmc.Group(
@@ -667,7 +656,7 @@ mt_menu = dmc.MantineProvider(
 data_demog = [["total_women", "Female Population Density"], ["choiceB", "Foreign Population"], ["choiceC", "Income Level"]]
 
 # Define the second radio group as a separate component
-demog_menu = dmc.MantineProvider(
+demog_menu = html.Div(
     children=[
         dmc.RadioGroup(
             children=dmc.Stack(
@@ -683,7 +672,7 @@ demog_menu = dmc.MantineProvider(
     ]
 )
 
-buttons = dmc.MantineProvider(
+buttons = html.Div(
     children=[
         dmc.Group([
         dmc.Button("Apply", variant="filled", size="md", id="apply-button"),
@@ -704,7 +693,7 @@ colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340', 
 ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+"]
 colorbar = dlx.categorical_colorbar(categories=ctg, colorscale=colorscale, width=300, height=30, position="bottomright")
 
-buttons_comarcas = dmc.MantineProvider(
+buttons_comarcas = html.Div(
     children=[
         dmc.Group([
         dmc.Button("Donostialdea", variant="filled", size="md", id="donostia-button"),
@@ -723,7 +712,7 @@ buttons_comarcas = dmc.MantineProvider(
 )
 
 # Layout
-app.layout = html.Div(
+app.layout = dmc.MantineProvider(html.Div(
     [
         # Map Component
         dl.Map(
@@ -818,7 +807,7 @@ app.layout = html.Div(
             },
         ),
     ]
-)
+))
 
 # Update the callback to display the hovered feature's information, including CUSEC
 @callback(
