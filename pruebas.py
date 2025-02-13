@@ -14,14 +14,14 @@ import pandas as pd
 # pip install -r requirements.txt
 
 # load csv into pandas dataframe
-TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Erreferentz": str})
+TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Referencia": str})
 
 def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TIME_DATA):
     # Default header when no feature is hovered
     header = [html.H4("Hover over a block for details")]
     if not feature:
         return header + [html.P("")]
-    
+
     if transport_mode == "walk":
         transport_msg = html.B("Walking time to:")
     elif transport_mode == "bike":
@@ -30,46 +30,54 @@ def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TI
         transport_msg = html.B("Public transit time to:")
     elif transport_mode == "car":
         transport_msg = html.B("Driving time to:")
-    
+
     # Extract properties from the feature
-    #municipio = feature["properties"].get("Municipio", "Unknown")
-   # cusec = feature["properties"].get("CUSEC", "N/A")
     ref = feature["properties"].get("Erreferentz", None)
     
+    # Initialize poi_times as an empty list to avoid UnboundLocalError
+    poi_times = []
+
     # Ensure `ref` is a string for comparison
     if time_data is not None and ref:
         ref = str(ref).strip()  # Convert and clean `ref`
-        # Filter the DataFrame for the matching `Erreferentz`
-        row = time_data[time_data["Erreferentz"] == ref]
+        
+        # Filter the DataFrame for the matching `Referencia`
+        row = time_data[time_data["Referencia"] == ref]
+        
+        # Check if row is empty
         if not row.empty:
-            # Initialize a list to store time info for the selected POIs
-            poi_times = []
-
             # For each selected POI, get the corresponding time based on the transport mode
             for column in selected_pois:
                 column_with_mode = f"{column}_{transport_mode}"
                 
-                # Get the time for this POI and mode of transport
-                time = row.get(column_with_mode).iloc[0] if column_with_mode in row.columns else "N/A"
+                # Check if the column exists before trying to access it
+                if column_with_mode in row.columns:
+                    time = row[column_with_mode].iloc[0]  # Get the time for this POI and mode of transport
+                else:
+                    time = "N/A"
                 
                 poi_label = layer_labels.get(column, column.replace("_", " ").capitalize())
 
                 # Add the time info to the list
                 poi_times.append(html.P([html.B(poi_label), f": {time} minutes"], style={"margin": "0", "padding": "0"}))
-    
+        else:
+            # Add a message when no data is found
+            poi_times.append(html.P("No data available for this feature", style={"margin": "0", "padding": "0"}))
+
+    # Default ref value if it's None
+    ref = ref if ref else "N/A"
+
     # Build the HTML output
     return [
-        #html.B("Municipio: "), f"{municipio}", html.Br(),
-        #html.B("Density: "), f"{density_str} people / mi²", html.Br(),
-       # html.B("CUSEC: "), f"{cusec}", html.Br(),
-       # html.B("Walk Time: "), f"{walk_time} minutes", html.Br(),
-       # html.B("Bike Time: "), f"{bike_time} minutes", html.Br(),
         transport_msg, html.Br(),
         html.Div(
-        [html.Div(poi_time, style={"margin": "0", "padding": "0"}) for poi_time in poi_times],
-        style={"display": "flex", "flex-direction": "column", "gap": "1px"}),
-        html.Div("Referencia: " + ref, style={"margin": "0", "padding": "0"}),
+            [html.Div(poi_time, style={"margin": "0", "padding": "0"}) for poi_time in poi_times],
+            style={"display": "flex", "flex-direction": "column", "gap": "1px"}
+        ),
+        html.Div(f"Referencia: {ref}", style={"margin": "0", "padding": "0"}),
     ]
+
+
 
 # Create info control.
 info = html.Div(
@@ -152,7 +160,7 @@ custom_icon = dict(
 )
 
 # Load geojson polygons
-with open("assets/geojsons/buildings_by_section_colors.geojson", "r") as f:
+with open("assets/geojsons/buildings_by_section_colors_demog.geojson", "r") as f:
     geojson = json.load(f)
 
 # Load POI GeoJSON files
@@ -817,6 +825,10 @@ app.layout = dmc.MantineProvider(html.Div(
      State("transport-choice", "value")]  # Access selected transport mode from the dcc.Store
 )
 def info_hover(feature, selected_pois, transport_mode):
+    print("Feature:", feature)
+    print("Selected POIs:", selected_pois)
+    print("Transport Mode:", transport_mode)
+
     # Use the feature and selected_pois data in your function
     return get_info(feature, selected_pois, transport_mode)
 
