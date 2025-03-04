@@ -1060,11 +1060,7 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
     prevent_initial_call=True
 )
 def fly_to_region(*_):
-    button_id = ctx.triggered_id  # Gets the ID of the button that triggered the callback
-    print('click object:')
-    print(ctx.triggered)
-    print(ctx.inputs)
-    print(button_id)
+    #button_id = ctx.triggered_id  # Gets the ID of the button that triggered the callback
     donostia_click = ctx.triggered[0]['value']
     debab_click = ctx.triggered[1]['value']
     debag_click = ctx.triggered[2]['value']
@@ -1086,45 +1082,6 @@ def fly_to_region(*_):
         return dict(center=[43.237423, -2.207675], zoom=13, transition="flyTo")
     elif tolosa_click == 1:
         return dict(center=[43.134334, -2.075681], zoom=13, transition="flyTo") 
-    
-    """
-    if button_id == "donostia-button":
-        print(ctx.triggered)
-        donostia_click = ctx.triggered[0]['value']
-        if donostia_click == 1:
-            print('donostia click')
-            return dict(center=[43.289754, -1.986536], zoom=13, transition="flyTo")
-    elif button_id == "debab-button":
-        print(ctx.triggered)
-        debab_click = ctx.triggered[0]['value']
-        if debab_click == 1:
-            return dict(center=[43.245188, -2.378489], zoom=13, transition="flyTo")
-    elif button_id == "debag-button":
-        debag_click = ctx.triggered[0]['value']
-        print(ctx.triggered)
-        if debag_click == 1:
-            return dict(center=[43.064501, -2.454893], zoom=13, transition="flyTo")
-    elif button_id == "bidasoa-button":
-        bidasoa_click = ctx.triggered[0]['value']
-        print(ctx.triggered)
-        if bidasoa_click == 1:
-            return dict(center=[43.339777, -1.800981], zoom=13, transition="flyTo")
-    elif button_id == "goierri-button":
-        goierri_click = ctx.triggered[0]['value']
-        print(ctx.triggered)
-        if goierri_click == 1:
-            return dict(center=[43.022608, -2.241060], zoom=13, transition="flyTo")
-    elif button_id == "urolak-button":
-        urolak_click = ctx.triggered[0]['value']
-        print(ctx.triggered)
-        if urolak_click == 1:
-            return dict(center=[43.237423, -2.207675], zoom=13, transition="flyTo")
-    elif button_id == "tolosa-button":
-        tolosa_click = ctx.triggered[0]['value']
-        print(ctx.triggered)
-        if tolosa_click == 1:
-            return dict(center=[43.134334, -2.075681], zoom=13, transition="flyTo")
-    """
     return dash.no_update  # Fallback in case no button was clicked
 
 if __name__ == "__main__":
