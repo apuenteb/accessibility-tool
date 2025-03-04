@@ -816,7 +816,7 @@ app.layout = dmc.MantineProvider(html.Div(
                 
             },
         ),
-        dcc.Interval(id='interval', interval=1000)
+        dcc.Interval(id='interval', interval=3000)
     ]
 ))
 
@@ -836,11 +836,98 @@ def update_output():
 )
 def click_button(n_intervals):
     global message
-    if len(message) > 0:
+    print('message inside function:', message)
+    if len(message) > 0 and message == 'donostia':
+        print('sending click request')
         message = ''
         return [1]
-    else:
-        return [None]  # return current state when message is empty
+    #else:
+    #    return [None]  # return current state when message is empty
+    
+@app.callback(
+    [Output('debab-button', 'n_clicks')],
+    [Input('interval', 'n_intervals')]
+)
+def click_button(n_intervals):
+    global message
+    print('message inside function:', message)
+    if len(message) > 0 and message == 'debab':
+        print('sending click request')
+        message = ''
+        return [1]
+    #else:
+    #    return [None]  # return current state when message is empty
+
+@app.callback(
+    [Output('debag-button', 'n_clicks')],
+    [Input('interval', 'n_intervals')]
+)
+def click_button(n_intervals):
+    global message
+    print('message inside function:', message)
+    if len(message) > 0 and message == 'debag':
+        print('sending click request')
+        message = ''
+        return [1]
+    #else:
+    #    return [None]  # return current state when message is empty
+
+@app.callback(
+    [Output('bidasoa-button', 'n_clicks')],
+    [Input('interval', 'n_intervals')]
+)
+def click_button(n_intervals):
+    global message
+    print('message inside function:', message)
+    if len(message) > 0 and message == 'bidasoa':
+        print('sending click request')
+        message = ''
+        return [1]
+    #else:
+    #    return [None]  # return current state when message is empty
+
+@app.callback(
+    [Output('goierri-button', 'n_clicks')],
+    [Input('interval', 'n_intervals')]
+)
+def click_button(n_intervals):
+    global message
+    print('message inside function:', message)
+    if len(message) > 0 and message == 'goierri':
+        print('sending click request')
+        message = ''
+        return [1]
+    #else:
+    #    return [None]  # return current state when message is empty
+
+@app.callback(
+    [Output('urolak-button', 'n_clicks')],
+    [Input('interval', 'n_intervals')]
+)
+def click_button(n_intervals):
+    global message
+    print('message inside function:', message)
+    if len(message) > 0 and message == 'urolak':
+        print('sending click request')
+        message = ''
+        return [1]
+    #else:
+    #    return [None]  # return current state when message is empty
+
+@app.callback(
+    [Output('tolosa-button', 'n_clicks')],
+    [Input('interval', 'n_intervals')]
+)
+def click_button(n_intervals):
+    global message
+    print('message inside function:', message)
+    if len(message) > 0 and message == 'tolosa':
+        print('sending click request')
+        message = ''
+        return [1]
+    #else:
+    #    return [None]  # return current state when message is empty
+
 #################################################################################
 
 # Update the callback to display the hovered feature's information, including CUSEC
@@ -974,34 +1061,43 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
 )
 def fly_to_region(*_):
     button_id = ctx.triggered_id  # Gets the ID of the button that triggered the callback
-    #print('click object:')
-    #print(ctx.inputs)
+    print('click object:')
+    print(ctx.inputs)
+    print(button_id)
     if button_id == "donostia-button":
+        print(ctx.triggered)
         donostia_click = ctx.triggered[0]['value']
         if donostia_click == 1:
+            print('donostia click')
             return dict(center=[43.289754, -1.986536], zoom=13, transition="flyTo")
     elif button_id == "debab-button":
-        debab_click = ctx.triggered[1]['value']
+        print(ctx.triggered)
+        debab_click = ctx.triggered[0]['value']
         if debab_click == 1:
             return dict(center=[43.245188, -2.378489], zoom=13, transition="flyTo")
     elif button_id == "debag-button":
-        debag_click = ctx.triggered[2]['value']
+        debag_click = ctx.triggered[0]['value']
+        print(ctx.triggered)
         if debag_click == 1:
             return dict(center=[43.064501, -2.454893], zoom=13, transition="flyTo")
     elif button_id == "bidasoa-button":
-        bidasoa_click = ctx.triggered[3]['value']
+        bidasoa_click = ctx.triggered[0]['value']
+        print(ctx.triggered)
         if bidasoa_click == 1:
             return dict(center=[43.339777, -1.800981], zoom=13, transition="flyTo")
     elif button_id == "goierri-button":
-        goierri_click = ctx.triggered[4]['value']
+        goierri_click = ctx.triggered[0]['value']
+        print(ctx.triggered)
         if goierri_click == 1:
             return dict(center=[43.022608, -2.241060], zoom=13, transition="flyTo")
     elif button_id == "urolak-button":
-        urolak_click = ctx.triggered[5]['value']
+        urolak_click = ctx.triggered[0]['value']
+        print(ctx.triggered)
         if urolak_click == 1:
             return dict(center=[43.237423, -2.207675], zoom=13, transition="flyTo")
     elif button_id == "tolosa-button":
-        tolosa_click = ctx.triggered[6]['value']
+        tolosa_click = ctx.triggered[0]['value']
+        print(ctx.triggered)
         if tolosa_click == 1:
             return dict(center=[43.134334, -2.075681], zoom=13, transition="flyTo")
     return dash.no_update  # Fallback in case no button was clicked
