@@ -7,6 +7,7 @@ from dash_extensions.javascript import assign
 import json
 import dash_leaflet.express as dlx
 import pandas as pd
+from flask import request
 
 # python -m venv venv
 # On Windows: venv\Scripts\activate
@@ -701,6 +702,7 @@ colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340', 
 ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+"]
 colorbar = dlx.categorical_colorbar(categories=ctg, colorscale=colorscale, width=300, height=30, position="bottomright")
 
+#        dmc.Button("Donostialdea", variant="filled", size="md", id="donostia-button"),
 buttons_comarcas = html.Div(
     children=[
         dmc.Group([
@@ -814,8 +816,32 @@ app.layout = dmc.MantineProvider(html.Div(
                 
             },
         ),
+        dcc.Interval(id='interval', interval=1000)
     ]
 ))
+
+#### external trigger of the button ########################################
+message = ''
+@app.server.route('/api/update', methods=['POST'])
+def update_output():
+    global message
+    if request.method == 'POST':
+        print('Received POST request')
+        message = request.get_json()['message']
+        print('message:', message)
+        return {'message': 'Received message: {}'.format(message)}
+@app.callback(
+    [Output('donostia-button', 'n_clicks')],
+    [Input('interval', 'n_intervals')]
+)
+def click_button(n_intervals):
+    global message
+    if len(message) > 0:
+        message = ''
+        return [1]
+    else:
+        return [None]  # return current state when message is empty
+#################################################################################
 
 # Update the callback to display the hovered feature's information, including CUSEC
 @callback(
@@ -948,21 +974,36 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
 )
 def fly_to_region(*_):
     button_id = ctx.triggered_id  # Gets the ID of the button that triggered the callback
-
+    #print('click object:')
+    #print(ctx.inputs)
     if button_id == "donostia-button":
-        return dict(center=[43.289754, -1.986536], zoom=13, transition="flyTo")
+        donostia_click = ctx.triggered[0]['value']
+        if donostia_click == 1:
+            return dict(center=[43.289754, -1.986536], zoom=13, transition="flyTo")
     elif button_id == "debab-button":
-        return dict(center=[43.245188, -2.378489], zoom=13, transition="flyTo")
+        debab_click = ctx.triggered[1]['value']
+        if debab_click == 1:
+            return dict(center=[43.245188, -2.378489], zoom=13, transition="flyTo")
     elif button_id == "debag-button":
-        return dict(center=[43.064501, -2.454893], zoom=13, transition="flyTo")
+        debag_click = ctx.triggered[2]['value']
+        if debag_click == 1:
+            return dict(center=[43.064501, -2.454893], zoom=13, transition="flyTo")
     elif button_id == "bidasoa-button":
-        return dict(center=[43.339777, -1.800981], zoom=13, transition="flyTo")
+        bidasoa_click = ctx.triggered[3]['value']
+        if bidasoa_click == 1:
+            return dict(center=[43.339777, -1.800981], zoom=13, transition="flyTo")
     elif button_id == "goierri-button":
-        return dict(center=[43.022608, -2.241060], zoom=13, transition="flyTo")
+        goierri_click = ctx.triggered[4]['value']
+        if goierri_click == 1:
+            return dict(center=[43.022608, -2.241060], zoom=13, transition="flyTo")
     elif button_id == "urolak-button":
-        return dict(center=[43.237423, -2.207675], zoom=13, transition="flyTo")
+        urolak_click = ctx.triggered[5]['value']
+        if urolak_click == 1:
+            return dict(center=[43.237423, -2.207675], zoom=13, transition="flyTo")
     elif button_id == "tolosa-button":
-        return dict(center=[43.134334, -2.075681], zoom=13, transition="flyTo")
+        tolosa_click = ctx.triggered[6]['value']
+        if tolosa_click == 1:
+            return dict(center=[43.134334, -2.075681], zoom=13, transition="flyTo")
     return dash.no_update  # Fallback in case no button was clicked
 
 if __name__ == "__main__":
