@@ -1061,27 +1061,23 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
 )
 def fly_to_region(*_):
     #button_id = ctx.triggered_id  # Gets the ID of the button that triggered the callback
-    donostia_click = ctx.triggered[0]['value']
-    debab_click = ctx.triggered[1]['value']
-    debag_click = ctx.triggered[2]['value']
-    bidasoa_click = ctx.triggered[3]['value']
-    goierri_click = ctx.triggered[4]['value']
-    urolak_click = ctx.triggered[5]['value']
-    tolosa_click = ctx.triggered[6]['value']
-    if donostia_click == 1:
-        return dict(center=[43.289754, -1.986536], zoom=13, transition="flyTo")
-    elif debab_click == 1:
-        return dict(center=[43.245188, -2.378489], zoom=13, transition="flyTo")
-    elif debag_click == 1:
-        return dict(center=[43.064501, -2.454893], zoom=13, transition="flyTo")
-    elif bidasoa_click == 1:
-        return dict(center=[43.339777, -1.800981], zoom=13, transition="flyTo")
-    elif goierri_click == 1:
-        return dict(center=[43.022608, -2.241060], zoom=13, transition="flyTo")
-    elif urolak_click == 1:
-        return dict(center=[43.237423, -2.207675], zoom=13, transition="flyTo")
-    elif tolosa_click == 1:
-        return dict(center=[43.134334, -2.075681], zoom=13, transition="flyTo") 
+    #print(ctx.triggered)
+    triggered_values = ctx.triggered
+    for i_comarcas in triggered_values:
+        if i_comarcas['prop_id'] == 'donostia-button.n_clicks' and i_comarcas['value'] == 1:
+            return dict(center=[43.289754, -1.986536], zoom=13, transition="flyTo")
+        elif i_comarcas['prop_id'] == 'debab-button.n_clicks' and i_comarcas['value'] == 1:
+            return dict(center=[43.245188, -2.378489], zoom=13, transition="flyTo")
+        elif i_comarcas['prop_id'] == 'debag-button.n_clicks' and i_comarcas['value'] == 1:
+            return dict(center=[43.064501, -2.454893], zoom=13, transition="flyTo")
+        elif i_comarcas['prop_id'] == 'bidasoa-button.n_clicks' and i_comarcas['value'] == 1:
+            return dict(center=[43.339777, -1.800981], zoom=13, transition="flyTo")
+        elif i_comarcas['prop_id'] == 'goierri-button.n_clicks' and i_comarcas['value'] == 1:
+            return dict(center=[43.022608, -2.241060], zoom=13, transition="flyTo")
+        elif i_comarcas['prop_id'] == 'urolak-button.n_clicks' and i_comarcas['value'] == 1:
+            return dict(center=[43.237423, -2.207675], zoom=13, transition="flyTo")
+        elif i_comarcas['prop_id'] == 'tolosa-button.n_clicks' and i_comarcas['value'] == 1:
+            return dict(center=[43.134334, -2.075681], zoom=13, transition="flyTo")
     return dash.no_update  # Fallback in case no button was clicked
 
 if __name__ == "__main__":
