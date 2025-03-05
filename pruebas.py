@@ -14,7 +14,7 @@ import pandas as pd
 # pip install -r requirements.txt
 
 # load csv into pandas dataframe
-TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Referencia": str})
+TIME_DATA = pd.read_csv('./assets/csv_files/time_data copy.csv', dtype={"Referencia": str})
 
 def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TIME_DATA):
     # Default header when no feature is hovered
@@ -160,7 +160,7 @@ custom_icon = dict(
 )
 
 # Load geojson polygons
-with open("assets/geojsons/buildings_by_section_colors_demog.geojson", "r") as f:
+with open("assets/geojsons/buildings_by_section_newcolors.geojson", "r") as f:
     geojson = json.load(f)
 
 # Load POI GeoJSON files
@@ -179,12 +179,25 @@ with open("assets/geojsons/poi/centros_salud.geojson", "r", encoding="utf-8") as
 with open("assets/geojsons/poi/farmacias.geojson", "r", encoding="utf-8") as f:
     farmacias_geojson = json.load(f)
 
+with open("assets/geojsons/poi/campos_golf.geojson", "r", encoding="utf-8") as f:
+    golf_geojson = json.load(f)
+
 # Dictionaries by POI categories
 eat_layers = [
     {"label": "Special Food Services",  "checked": False},
     {"label": "Restaurants", "checked": False},
     {"label": "Cafes & bakeries",  "checked": False},
     {"label": "Bars", "checked": False},
+]
+
+school_layers = [
+    {"label": "Kindergarten",  "checked": False},
+    {"label": "Elementary School",  "checked": False},
+    {"label": "High School", "checked": False},
+    {"label": "Universities",  "checked": False},
+    {"label": "Professional Education", "checked": False},
+    {"label": "Other Education Centers", "checked": False},
+    {"label": "Sports and Recreation Instruction", "checked": False},
 ]
 
 healthcare_layers = [
@@ -197,7 +210,7 @@ healthcare_layers = [
 
 leisure_layers = [
     {"label": "Hairdresser & Barbery", "checked": False},
-    {"label": "Personal Wellness", "checked": False},
+    {"label": "Personal Grooming", "checked": False},
 ]
 
 professional_layers = [
@@ -257,8 +270,8 @@ durablegoods_layers = [
 
 grocery_layers = [
     {"label": "Convenience Corner Store", "checked": False},
-    {"label": "Grocery or Supermarket", "checked": False},
-    {"label": "Liquor Store", "checked": False},
+    {"label": "Local Supermarket", "checked": False},
+    {"label": "Hypermarket", "checked": False},
     {"label": "Specialty Food Retailers", "checked": False},
 ]
 
@@ -279,7 +292,7 @@ entertainment_layers = [
 ]
 
 leisurewellness_layers = [
-    {"label": "Golf Courses", "checked": False},
+    {"label": "Golf Courses", "value": "golf", "geojson":golf_geojson,"checked": False},
     {"label": "Gym", "checked": False},
     {"label": "Marinas", "checked": False},
 ]
@@ -304,7 +317,7 @@ religious_layers = [
 
 # Combined for other uses
 all_layers = [
-        eat_layers, healthcare_layers, leisure_layers, professional_layers,
+        eat_layers, school_layers, healthcare_layers, leisure_layers, professional_layers,
         pharmacy_layers, service_layers, hotel_layers, consumergoods_layers,
         durablegoods_layers, grocery_layers, cultural_layers, entertainment_layers,
         leisurewellness_layers, train_layers, bus_layers, bike_layers, religious_layers
@@ -340,6 +353,29 @@ poi_menu = html.Div(
                 ),
                 title="Eat",
                 item_id="eatery",
+                style={  # Apply style here
+                    "maxHeight": "150px",  # Adjust as needed
+                    "overflowY": "auto",  # Scrollbar only when necessary
+                },
+            ),
+            # School Section
+            dbc.AccordionItem(
+                html.Div(
+                    children=[
+                        html.H6("Education", style={"marginTop": "10px", "marginBottom": "5px"}),
+                        html.Div([
+                            dmc.Checkbox(
+                                id={"type": "education-item", "index": i},
+                                label=item["label"],
+                                checked=item["checked"],
+                                style={"marginTop": "5px", "marginLeft": "10px"}
+                            )
+                            for i, item in enumerate(school_layers)
+                        ])
+                    ]
+                ),
+                title="School",
+                item_id="school",
                 style={  # Apply style here
                     "maxHeight": "150px",  # Adjust as needed
                     "overflowY": "auto",  # Scrollbar only when necessary
