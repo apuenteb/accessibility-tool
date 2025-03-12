@@ -151,13 +151,16 @@ on_each_feature = assign("""
 # React 18 Issue: Dash Mantine Components is based on REACT 18. You must set the env variable REACT_VERSION=18.2.0 before starting up the app.
 # https://www.dash-mantine-components.com/getting-started#:~:text=React%2018%20Issue,up%20the%20app.
 _dash_renderer._set_react_version("18.2.0")
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
+#app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
 #server = app.server
+
+
 
 ###############  Flask and websockets ################
 from flask import Flask
 server = Flask(__name__)
-app = dash.Dash(__name__, server=server)
+app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
+#app = dash.Dash(__name__, server=server)
 socketio = SocketIO(server)
 message = ''
 #######################################################
@@ -329,6 +332,7 @@ for layer_group in all_layers:
         # Ensure the layer contains the 'value' and 'label' keys
         if "value" in layer and "label" in layer:
             layer_labels[layer["value"]] = layer["label"]
+
 
 poi_menu = html.Div(
     dbc.Accordion(
@@ -654,23 +658,6 @@ poi_menu = html.Div(
     },
 )
 
-data_mt = [["walk", "Walk"], ["bike", "Bike"], ["pt", "Public Transit"], ["car", "Car"]]
-
-# Define the first radio group as a separate component
-mt_menu = html.Div(
-    children=[
-        dmc.RadioGroup(
-            children=dmc.Group(
-                [dmc.Radio(label, value=value) for value, label in data_mt],
-               my=10,
-            ),
-            id="transport-choice",
-            value="walk",
-            label="Select a mode of transport",
-            size="sm",
-        )
-    ]
-)
 
 data_demog = [["total_women", "Female Population Density"], ["choiceB", "Foreign Population"], ["choiceC", "Income Level"]]
 
@@ -730,6 +717,25 @@ buttons_comarcas = html.Div(
     )
     ]
 )
+
+data_mt = [["walk", "Walk"], ["bike", "Bike"], ["pt", "Public Transit"], ["car", "Car"]]
+
+# Define the first radio group as a separate component
+mt_menu = html.Div(
+    children=[
+        dmc.RadioGroup(
+            children=dmc.Group(
+                [dmc.Radio(label, value=value) for value, label in data_mt],
+               my=10,
+            ),
+            id="transport-choice",
+            value="walk",
+            label="Select a mode of transport",
+            size="sm",
+        )
+    ]
+)
+
 
 # Layout
 app.layout = dmc.MantineProvider(html.Div(
