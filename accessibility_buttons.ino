@@ -30,7 +30,7 @@ const int Bidasoabutton = 5;  // the number of the pushbutton pin
 const int Goierributton = 6;  // the number of the pushbutton pin
 const int Urolakbutton = 7;  // the number of the pushbutton pin
 const int Tolosabutton = 8;  // the number of the pushbutton pin
-const int ledPin = 13;    // the number of the LED pin
+//const int ledPin = 13;    // the number of the LED pin
 
 // variables will change:
 int DonostiabuttonState = 0;  // variable for reading the pushbutton status
@@ -52,7 +52,7 @@ int TolosabuttonLastState = 0;  // variable for reading the pushbutton status
 void setup() {
   Serial.begin(9600);
   // initialize the LED pin as an output:
-  pinMode(ledPin, OUTPUT);
+  //pinMode(ledPin, OUTPUT);
   // initialize the pushbutton pin as an input:
   pinMode(Donostiabutton, INPUT);
   pinMode(Debabbutton, INPUT);
@@ -76,37 +76,39 @@ void loop() {
   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
   if ((DonostiabuttonState == HIGH) && (DonostiabuttonState != DonostiabuttonLastState)) {
     // turn LED on:
-    digitalWrite(ledPin, HIGH);
+    //digitalWrite(ledPin, HIGH);
     Serial.write("donostia\n");
   } 
   else if ((DebabbuttonState == HIGH) && (DebabbuttonState != DebabbuttonLastState)) {
-    digitalWrite(ledPin, HIGH);
+    //digitalWrite(ledPin, HIGH);
     Serial.write("debab\n");
   }
   else if ((DebagbuttonState == HIGH) && (DebagbuttonState != DebagbuttonLastState)) {
-    digitalWrite(ledPin, HIGH);
+    //digitalWrite(ledPin, HIGH);
     Serial.write("debag\n");
   }
   else if ((BidasoabuttonState == HIGH) && (BidasoabuttonState != BidasoabuttonLastState)) {
-    digitalWrite(ledPin, HIGH);
+    //digitalWrite(ledPin, HIGH);
     Serial.write("bidasoa\n");
   } 
   else if ((GoierributtonState == HIGH) && (GoierributtonState != GoierributtonLastState)) {
-    digitalWrite(ledPin, HIGH);
+    //digitalWrite(ledPin, HIGH);
     Serial.write("goierri\n");
   }
   else if ((UrolakbuttonState == HIGH) && (UrolakbuttonState != UrolakbuttonLastState)) {
-    digitalWrite(ledPin, HIGH);
+    //digitalWrite(ledPin, HIGH);
     Serial.write("urolak\n");
   }
   else if ((TolosabuttonState == HIGH) && (TolosabuttonState != TolosabuttonLastState)) {
-    digitalWrite(ledPin, HIGH);
+    //digitalWrite(ledPin, HIGH);
     Serial.write("tolosa\n");
   }  
+  /*
   else {
     // turn LED off:
     digitalWrite(ledPin, LOW);
   }
+  */
   DonostiabuttonLastState = DonostiabuttonState;
   DebabbuttonLastState = DebabbuttonState;
   DebagbuttonLastState = DebagbuttonState;
