@@ -8,10 +8,10 @@ import json
 import dash_leaflet.express as dlx
 import pandas as pd
 
-#Link to PM: https://cityscope.media.mit.edu/CS_cityscopeJS_projection_mapping/?cityscope=elmejormapa
+#Link to PM: https://cityscope.media.mit.edu/CS_cityscopeJS_projection_mapping/?cityscope=nombre_de_la_mesa
 
 from cityio import CityIo
-cityio = CityIo("elmejormapa")
+cityio = CityIo("nombre_de_la_mesa")
 cityio.start()
 
 # python -m venv venv
@@ -994,11 +994,11 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
             feature['properties']['selectedOpacity'] = 0.4  # Reset opacity to default
         
         for feature in projected_geojson['features']:
-            feature['properties']['color'] = '#6baed6'  
+            feature['properties']['color'] = '#6baed6'  # Or replace with a neutral default color
 
         cityio.send_geojson(projected_geojson)
         # Clear map points and reset controls
-        return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic, projected_geojson
+        return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
 
 
 @app.callback(
