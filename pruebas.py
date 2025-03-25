@@ -8,6 +8,7 @@ import json
 import dash_leaflet.express as dlx
 import pandas as pd
 
+#https://cityscope.media.mit.edu/CS_cityscopeJS_projection_mapping/?cityscope=elmejormapa
 from cityio import CityIo
 cityio = CityIo("elmejormapa")
 cityio.start()
