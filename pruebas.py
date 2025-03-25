@@ -8,10 +8,10 @@ import json
 import dash_leaflet.express as dlx
 import pandas as pd
 
-#Link to PM: https://cityscope.media.mit.edu/CS_cityscopeJS_projection_mapping/?cityscope=elmejormapa
+#Link to PM: https://cityscope.media.mit.edu/CS_cityscopeJS_projection_mapping/?cityscope=nombre_de_la_mesa
 
 from cityio import CityIo
-cityio = CityIo("elmejormapa")
+cityio = CityIo("nombre_de_la_mesa")
 cityio.start()
 
 # python -m venv venv
@@ -950,10 +950,7 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
                 selected_color = next((color for color in color_priority if color in feature_colors), '#6baed6')
                 feature['properties']['color'] = selected_color
             else:
-                print("Falled back to default color")
                 feature['properties']['color'] = '#6baed6'
-
-        cityio.send_geojson(projected_geojson)
 
         # Update GeoJSON features with selected colors, opacity, and demographic data
         for feature in geojson['features']:
@@ -982,6 +979,7 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
             else:
                 feature['properties']['selectedOpacity'] = 0.4  # Default opacity if no demographic selected
 
+        cityio.send_geojson(projected_geojson)
         return geojson, map_points, selected_pois, transport_mode, [dash.no_update] * len(checked_values), selected_demographic
 
     elif triggered_id == "reset-button":
@@ -994,9 +992,13 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
         for feature in geojson['features']:
             feature['properties']['selectedColor'] = None  # Or replace with a neutral default color
             feature['properties']['selectedOpacity'] = 0.4  # Reset opacity to default
+        
+        for feature in projected_geojson['features']:
+            feature['properties']['color'] = '#6baed6'  # Or replace with a neutral default color
 
+        cityio.send_geojson(projected_geojson)
         # Clear map points and reset controls
-        return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic, projected_geojson
+        return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
 
 
 @app.callback(
