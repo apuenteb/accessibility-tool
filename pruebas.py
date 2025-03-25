@@ -1,4 +1,4 @@
-import dash 
+import dash
 from dash import html, Input, Output, ALL, callback, ctx, _dash_renderer, dcc, State
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
@@ -7,6 +7,10 @@ from dash_extensions.javascript import assign
 import json
 import dash_leaflet.express as dlx
 import pandas as pd
+
+from cityio import CityIo
+cityio = CityIo("elmejormapa")
+cityio.start()
 
 # python -m venv venv
 # On Windows: venv\Scripts\activate
@@ -33,29 +37,29 @@ def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TI
 
     # Extract properties from the feature
     ref = feature["properties"].get("Erreferentz", None)
-    
+
     # Initialize poi_times as an empty list to avoid UnboundLocalError
     poi_times = []
 
     # Ensure `ref` is a string for comparison
     if time_data is not None and ref:
         ref = str(ref).strip()  # Convert and clean `ref`
-        
+
         # Filter the DataFrame for the matching `Referencia`
         row = time_data[time_data["Referencia"] == ref]
-        
+
         # Check if row is empty
         if not row.empty:
             # For each selected POI, get the corresponding time based on the transport mode
             for column in selected_pois:
                 column_with_mode = f"{column}_{transport_mode}"
-                
+
                 # Check if the column exists before trying to access it
                 if column_with_mode in row.columns:
                     time = row[column_with_mode].iloc[0]  # Get the time for this POI and mode of transport
                 else:
                     time = "N/A"
-                
+
                 poi_label = layer_labels.get(column, column.replace("_", " ").capitalize())
 
                 # Add the time info to the list
@@ -81,14 +85,14 @@ def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TI
 
 # Create info control.
 info = html.Div(
-    children=get_info(), 
-    id="info", 
+    children=get_info(),
+    id="info",
     className="info",
     style={
-        "position": "absolute", 
-        "top": "10px", 
-        "right": "10px", 
-        "zIndex": "1000", 
+        "position": "absolute",
+        "top": "10px",
+        "right": "10px",
+        "zIndex": "1000",
         "backgroundColor": "rgba(255, 255, 255, 1)",  # Semi-transparent background
         "padding": "10px",  # Optional: Add some padding for better readability
         "borderRadius": "5px",  # Optional: Rounded corners
@@ -97,7 +101,7 @@ info = html.Div(
 )
 
 # styling of the polygons (default & when hovered)
-visual_style = assign(""" 
+visual_style = assign("""
     function(feature) {
         const selectedColor = feature.properties.selectedColor || '#6baed6'; // Default color (blue)
         const selectedOpacity = feature.properties.selectedOpacity || 0.4; // Default color (blue)
@@ -142,7 +146,7 @@ on_each_feature = assign("""
             }
         });
     }
-""");
+""")
 
 
 # Dash app (initialize like here always, if not the dmc components don't work, we need to make sure the React version is 18.2.0)
@@ -162,6 +166,11 @@ custom_icon = dict(
 # Load geojson polygons
 with open("assets/geojsons/buildings_by_section_newcolors.geojson", "r") as f:
     geojson = json.load(f)
+
+# Load geojson polygons
+with open("assets/geojsons/sections_colores.geojson", "r") as f:
+    projected_geojson = json.load(f)
+cityio.send_geojson(projected_geojson)
 
 # Load POI GeoJSON files
 with open("assets/geojsons/filtered-centros-educativos.geojson", "r") as f:
@@ -802,13 +811,13 @@ app.layout = dmc.MantineProvider(html.Div(
                                 "padding": "10px",
                                 "backgroundColor": "white",
                                 "borderRadius": "5px",
-                                
+
                             },
                         ),
                         html.Div(
                             buttons,
                             style={
-                                
+
                                 "borderRadius": "5px",
                                 "backgroundColor": "rgba(255, 255, 255)",
                             },
@@ -847,7 +856,7 @@ app.layout = dmc.MantineProvider(html.Div(
                 "zIndex": 1000,
                 "padding": "10px",
                 "borderRadius": "5px",
-                
+
             },
         ),
     ]
@@ -925,6 +934,25 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
                                 )
             layer_idx += len(layer_group)
 
+        # Update projection features with selected colors, opacity, and demographic data
+        for feature in projected_geojson['features']:
+            feature_colors = []
+            for column in selected_pois:
+                column_with_mode = f"{column}_{transport_mode}"
+                color = feature['properties'].get(column_with_mode)
+                if color in color_priority:
+                    feature_colors.append(color)
+
+            # Assign the highest priority color
+            if feature_colors:
+                selected_color = next((color for color in color_priority if color in feature_colors), '#6baed6')
+                feature['properties']['color'] = selected_color
+            else:
+                print("Falled back to default color")
+                feature['properties']['color'] = '#6baed6'
+
+        cityio.send_geojson(projected_geojson)
+
         # Update GeoJSON features with selected colors, opacity, and demographic data
         for feature in geojson['features']:
             feature_colors = []
@@ -966,7 +994,7 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
             feature['properties']['selectedOpacity'] = 0.4  # Reset opacity to default
 
         # Clear map points and reset controls
-        return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
+        return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic, projected_geojson
 
 
 @app.callback(
