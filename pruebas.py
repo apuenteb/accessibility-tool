@@ -8,6 +8,10 @@ import json
 import dash_leaflet.express as dlx
 import pandas as pd
 
+from cityio import CityIo
+cityio = CityIo("elmejormapa")
+cityio.start()
+
 # python -m venv venv
 # On Windows: venv\Scripts\activate
 # pip freeze > requirements.txt
@@ -142,7 +146,7 @@ on_each_feature = assign("""
             }
         });
     }
-""");
+""")
 
 
 # Dash app (initialize like here always, if not the dmc components don't work, we need to make sure the React version is 18.2.0)
@@ -162,6 +166,16 @@ custom_icon = dict(
 # Load geojson polygons
 with open("assets/geojsons/buildings_by_section_newcolors.geojson", "r") as f:
     geojson = json.load(f)
+
+# Load geojson polygons
+with open("assets/geojsons/sections_colores.geojson", "r") as f:
+    projected_geojson = json.load(f)
+
+# Once connected, send the GeoJSON
+if cityio.ws and cityio.ws.sock and cityio.ws.sock.connected:
+    cityio.send_geojson(projected_geojson)
+else:
+    print("WebSocket is not connected. Failed to send GeoJSON.")
 
 # Load POI GeoJSON files
 with open("assets/geojsons/filtered-centros-educativos.geojson", "r") as f:
@@ -925,6 +939,35 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
                                 )
             layer_idx += len(layer_group)
 
+        # Update projection features with selected colors, opacity, and demographic data
+        for feature in projected_geojson['features']:
+            feature_colors = []
+            print('Changing projected properties')
+            for column in selected_pois:
+                column_with_mode = f"{column}_{transport_mode}"
+                color = feature['properties'].get(column_with_mode)
+                if color in color_priority:
+                    feature_colors.append(color)
+                    print('Color:', color)
+
+            # Assign the highest priority color
+            if feature_colors:
+                selected_color = next((color for color in color_priority if color in feature_colors), '#6baed6')
+                feature['properties']['fillColor'] = selected_color
+            else:
+                feature['properties']['fillColor'] = '#6baed6'
+
+            # Handle demographic opacity if a demographic is selected
+            if selected_demographic:
+                opacity_column = f"{selected_demographic}"
+                opacity = feature['properties'].get(opacity_column)
+                if opacity is not None:
+                    feature['properties']['selectedOpacity'] = opacity
+                else:
+                    feature['properties']['selectedOpacity'] = 0.4  # Default value if opacity is not found
+            else:
+                feature['properties']['selectedOpacity'] = 0.4  # Default opacity if no demographic selected
+
         # Update GeoJSON features with selected colors, opacity, and demographic data
         for feature in geojson['features']:
             feature_colors = []
@@ -952,6 +995,10 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
             else:
                 feature['properties']['selectedOpacity'] = 0.4  # Default opacity if no demographic selected
 
+        if cityio.ws and cityio.ws.sock and cityio.ws.sock.connected:
+            cityio.send_geojson(projected_geojson)
+        else:
+            print("WebSocket is not connected. Failed to send GeoJSON.")
         return geojson, map_points, selected_pois, transport_mode, [dash.no_update] * len(checked_values), selected_demographic
 
     elif triggered_id == "reset-button":
@@ -966,7 +1013,7 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
             feature['properties']['selectedOpacity'] = 0.4  # Reset opacity to default
 
         # Clear map points and reset controls
-        return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
+        return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic, projected_geojson
 
 
 @app.callback(
