@@ -947,10 +947,10 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
 
             # Assign the highest priority color
             if feature_colors:
-                selected_color = next((color for color in color_priority if color in feature_colors), '#6baed6')
+                selected_color = next((color for color in color_priority if color in feature_colors), '#676d70')
                 feature['properties']['color'] = selected_color
             else:
-                feature['properties']['color'] = '#6baed6'
+                feature['properties']['color'] = '#676d70'
 
         # Update GeoJSON features with selected colors, opacity, and demographic data
         for feature in geojson['features']:
