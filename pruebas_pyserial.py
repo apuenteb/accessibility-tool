@@ -1,4 +1,4 @@
-import dash
+import dash 
 from dash import html, Input, Output, ALL, callback, ctx, _dash_renderer, dcc, State
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
@@ -7,21 +7,17 @@ from dash_extensions.javascript import assign
 import json
 import dash_leaflet.express as dlx
 import pandas as pd
-from flask import request
-
-#Link to PM: https://cityscope.media.mit.edu/CS_cityscopeJS_projection_mapping/?cityscope=nombre_de_la_mesa
-
-from cityio import CityIo
-cityio = CityIo("nombre_de_la_mesa")
-cityio.start()
+import serial
 
 # python -m venv venv
 # On Windows: venv\Scripts\activate
 # pip freeze > requirements.txt
 # pip install -r requirements.txt
 
+ser = serial.Serial('COM7', 9600, timeout=0.001)
+
 # load csv into pandas dataframe
-TIME_DATA = pd.read_csv('./assets/csv_files/time_data copy.csv', dtype={"Referencia": str})
+TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Referencia": str})
 
 def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TIME_DATA):
     # Default header when no feature is hovered
@@ -40,29 +36,29 @@ def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TI
 
     # Extract properties from the feature
     ref = feature["properties"].get("Erreferentz", None)
-
+    
     # Initialize poi_times as an empty list to avoid UnboundLocalError
     poi_times = []
 
     # Ensure `ref` is a string for comparison
     if time_data is not None and ref:
         ref = str(ref).strip()  # Convert and clean `ref`
-
+        
         # Filter the DataFrame for the matching `Referencia`
         row = time_data[time_data["Referencia"] == ref]
-
+        
         # Check if row is empty
         if not row.empty:
             # For each selected POI, get the corresponding time based on the transport mode
             for column in selected_pois:
                 column_with_mode = f"{column}_{transport_mode}"
-
+                
                 # Check if the column exists before trying to access it
                 if column_with_mode in row.columns:
                     time = row[column_with_mode].iloc[0]  # Get the time for this POI and mode of transport
                 else:
                     time = "N/A"
-
+                
                 poi_label = layer_labels.get(column, column.replace("_", " ").capitalize())
 
                 # Add the time info to the list
@@ -88,14 +84,14 @@ def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TI
 
 # Create info control.
 info = html.Div(
-    children=get_info(),
-    id="info",
+    children=get_info(), 
+    id="info", 
     className="info",
     style={
-        "position": "absolute",
-        "top": "10px",
-        "right": "10px",
-        "zIndex": "1000",
+        "position": "absolute", 
+        "top": "10px", 
+        "right": "10px", 
+        "zIndex": "1000", 
         "backgroundColor": "rgba(255, 255, 255, 1)",  # Semi-transparent background
         "padding": "10px",  # Optional: Add some padding for better readability
         "borderRadius": "5px",  # Optional: Rounded corners
@@ -104,7 +100,7 @@ info = html.Div(
 )
 
 # styling of the polygons (default & when hovered)
-visual_style = assign("""
+visual_style = assign(""" 
     function(feature) {
         const selectedColor = feature.properties.selectedColor || '#6baed6'; // Default color (blue)
         const selectedOpacity = feature.properties.selectedOpacity || 0.4; // Default color (blue)
@@ -149,7 +145,7 @@ on_each_feature = assign("""
             }
         });
     }
-""")
+""");
 
 
 # Dash app (initialize like here always, if not the dmc components don't work, we need to make sure the React version is 18.2.0)
@@ -167,13 +163,8 @@ custom_icon = dict(
 )
 
 # Load geojson polygons
-with open("assets/geojsons/buildings_by_section_newcolors.geojson", "r") as f:
+with open("assets/geojsons/buildings_by_section_colors_demog.geojson", "r") as f:
     geojson = json.load(f)
-
-# Load geojson polygons
-with open("assets/geojsons/sections_colores.geojson", "r") as f:
-    projected_geojson = json.load(f)
-cityio.send_geojson(projected_geojson)
 
 # Load POI GeoJSON files
 with open("assets/geojsons/filtered-centros-educativos.geojson", "r") as f:
@@ -191,25 +182,12 @@ with open("assets/geojsons/poi/centros_salud.geojson", "r", encoding="utf-8") as
 with open("assets/geojsons/poi/farmacias.geojson", "r", encoding="utf-8") as f:
     farmacias_geojson = json.load(f)
 
-with open("assets/geojsons/poi/campos_golf.geojson", "r", encoding="utf-8") as f:
-    golf_geojson = json.load(f)
-
 # Dictionaries by POI categories
 eat_layers = [
     {"label": "Special Food Services",  "checked": False},
     {"label": "Restaurants", "checked": False},
     {"label": "Cafes & bakeries",  "checked": False},
     {"label": "Bars", "checked": False},
-]
-
-school_layers = [
-    {"label": "Kindergarten",  "checked": False},
-    {"label": "Elementary School",  "checked": False},
-    {"label": "High School", "checked": False},
-    {"label": "Universities",  "checked": False},
-    {"label": "Professional Education", "checked": False},
-    {"label": "Other Education Centers", "checked": False},
-    {"label": "Sports and Recreation Instruction", "checked": False},
 ]
 
 healthcare_layers = [
@@ -222,7 +200,7 @@ healthcare_layers = [
 
 leisure_layers = [
     {"label": "Hairdresser & Barbery", "checked": False},
-    {"label": "Personal Grooming", "checked": False},
+    {"label": "Personal Wellness", "checked": False},
 ]
 
 professional_layers = [
@@ -282,8 +260,8 @@ durablegoods_layers = [
 
 grocery_layers = [
     {"label": "Convenience Corner Store", "checked": False},
-    {"label": "Local Supermarket", "checked": False},
-    {"label": "Hypermarket", "checked": False},
+    {"label": "Grocery or Supermarket", "checked": False},
+    {"label": "Liquor Store", "checked": False},
     {"label": "Specialty Food Retailers", "checked": False},
 ]
 
@@ -304,7 +282,7 @@ entertainment_layers = [
 ]
 
 leisurewellness_layers = [
-    {"label": "Golf Courses", "value": "golf", "geojson":golf_geojson,"checked": False},
+    {"label": "Golf Courses", "checked": False},
     {"label": "Gym", "checked": False},
     {"label": "Marinas", "checked": False},
 ]
@@ -329,7 +307,7 @@ religious_layers = [
 
 # Combined for other uses
 all_layers = [
-        eat_layers, school_layers, healthcare_layers, leisure_layers, professional_layers,
+        eat_layers, healthcare_layers, leisure_layers, professional_layers,
         pharmacy_layers, service_layers, hotel_layers, consumergoods_layers,
         durablegoods_layers, grocery_layers, cultural_layers, entertainment_layers,
         leisurewellness_layers, train_layers, bus_layers, bike_layers, religious_layers
@@ -365,29 +343,6 @@ poi_menu = html.Div(
                 ),
                 title="Eat",
                 item_id="eatery",
-                style={  # Apply style here
-                    "maxHeight": "150px",  # Adjust as needed
-                    "overflowY": "auto",  # Scrollbar only when necessary
-                },
-            ),
-            # School Section
-            dbc.AccordionItem(
-                html.Div(
-                    children=[
-                        html.H6("Education", style={"marginTop": "10px", "marginBottom": "5px"}),
-                        html.Div([
-                            dmc.Checkbox(
-                                id={"type": "education-item", "index": i},
-                                label=item["label"],
-                                checked=item["checked"],
-                                style={"marginTop": "5px", "marginLeft": "10px"}
-                            )
-                            for i, item in enumerate(school_layers)
-                        ])
-                    ]
-                ),
-                title="School",
-                item_id="school",
                 style={  # Apply style here
                     "maxHeight": "150px",  # Adjust as needed
                     "overflowY": "auto",  # Scrollbar only when necessary
@@ -815,13 +770,13 @@ app.layout = dmc.MantineProvider(html.Div(
                                 "padding": "10px",
                                 "backgroundColor": "white",
                                 "borderRadius": "5px",
-
+                                
                             },
                         ),
                         html.Div(
                             buttons,
                             style={
-
+                                
                                 "borderRadius": "5px",
                                 "backgroundColor": "rgba(255, 255, 255)",
                             },
@@ -860,120 +815,166 @@ app.layout = dmc.MantineProvider(html.Div(
                 "zIndex": 1000,
                 "padding": "10px",
                 "borderRadius": "5px",
-
+                
             },
         ),
-        dcc.Interval(id='interval', interval=3000)
+        dcc.Interval(id='interval', interval=3000),
+        dcc.Store(id='store_button', data=0),
+        dbc.Button("choose_comarca", id="intermediate_button", 
+                   n_clicks=0, style={"display": "none"}),
     ]
 ))
 
 #### external trigger of the button ########################################
-message = ''
-@app.server.route('/api/update', methods=['POST'])
-def update_output():
-    global message
-    if request.method == 'POST':
-        print('Received POST request')
-        message = request.get_json()['message']
-        print('message:', message)
-        return {'message': 'Received message: {}'.format(message)}
+comarcas = ['donostia', 'debab', 'debag', 'goierri', 'tolosa', 'urolak', 'bidasoa']
 @app.callback(
-    [Output('donostia-button', 'n_clicks')],
-    [Input('interval', 'n_intervals')]
+    [
+    Output('intermediate_button', 'n_clicks'),
+    Output('store_button', 'data')
+    ],
+    [Input('interval', 'n_intervals'),
+     State('store_button', 'data')],
+    allow_duplicate=True,
+    prevent_initial_call=True
 )
-def click_button(n_intervals):
-    global message
-    print('message inside function:', message)
-    if len(message) > 0 and message == 'donostia':
-        print('sending click request')
-        message = ''
-        return [1]
+def update_button(n, stored_data):
+    sent = False
+    while sent==False:
+        data = ser.read(1024)  # Read up to 1024 bytes
+        data_dec = data.decode('utf-8').strip()
+        print('data received: ', data_dec)
+        if data_dec in comarcas:
+            print('sending button click for ', data_dec)
+            print(n)
+            sent = True            
+            print() 
+            return [1, data_dec]
+        else:
+            return [0, data_dec]
+
+
+# Define the callback function for the button
+@app.callback(
+    Output('donostia-button', 'n_clicks'),
+    [Input('intermediate_button', 'n_clicks'),
+     State('store_button', 'data')],
+    allow_duplicate=True,    
+    prevent_initial_call=True
+)
+def button_click(n, stored_data):
+    print('something triggered the button click')
+    print(n)
+    print('stored_data: ', stored_data)
+    if n > 0 and stored_data == "donostia":
+        print('Donostia button clicked!')
+        print(n)
+        print()
+        return 1
     else:
-        return [0]  # return current state when message is empty
-    
+        return 0
+
 @app.callback(
     [Output('debab-button', 'n_clicks')],
-    [Input('interval', 'n_intervals')]
+    [Input('intermediate_button', 'n_clicks'),
+     State('store_button', 'data')],
+    allow_duplicate=True,    
+    prevent_initial_call=True
 )
-def click_button(n_intervals):
-    global message
-    print('message inside function:', message)
-    if len(message) > 0 and message == 'debab':
-        print('sending click request')
-        message = ''
+def button_click(n, stored_data):
+    print('something triggered the button click')
+    print(n)
+    if n > 0 and stored_data == "debab":
+        print('Debab button clicked!')
+        print(n)
+        print()
         return [1]
     else:
-        return [0]  # return current state when message is empty
-
+        return [0]
 @app.callback(
     [Output('debag-button', 'n_clicks')],
-    [Input('interval', 'n_intervals')]
+    [Input('intermediate_button', 'n_clicks'),
+     State('store_button', 'data')],
+    allow_duplicate=True,    
+    prevent_initial_call=True
 )
-def click_button(n_intervals):
-    global message
-    print('message inside function:', message)
-    if len(message) > 0 and message == 'debag':
-        print('sending click request')
-        message = ''
+def button_click(n, stored_data):
+    print('something triggered the button click')
+    print(n)
+    if n > 0 and stored_data == "debag":
+        print('Debag button clicked!')
+        print(n)
+        print()
         return [1]
     else:
-        return [0]  # return current state when message is empty
-
+        return [0]
 @app.callback(
     [Output('bidasoa-button', 'n_clicks')],
-    [Input('interval', 'n_intervals')]
+    [Input('intermediate_button', 'n_clicks'),
+     State('store_button', 'data')],
+    allow_duplicate=True,    
+    prevent_initial_call=True
 )
-def click_button(n_intervals):
-    global message
-    print('message inside function:', message)
-    if len(message) > 0 and message == 'bidasoa':
-        print('sending click request')
-        message = ''
+def button_click(n, stored_data):
+    print('something triggered the button click')
+    print(n)
+    if n > 0 and stored_data == "bidasoa":
+        print('Bidasoa button clicked!')
+        print(n)
+        print()
         return [1]
     else:
-        return [0]  # return current state when message is empty
-
+        return [0]
 @app.callback(
     [Output('goierri-button', 'n_clicks')],
-    [Input('interval', 'n_intervals')]
+    [Input('intermediate_button', 'n_clicks'),
+     State('store_button', 'data')],
+    allow_duplicate=True,    
+    prevent_initial_call=True
 )
-def click_button(n_intervals):
-    global message
-    print('message inside function:', message)
-    if len(message) > 0 and message == 'goierri':
-        print('sending click request')
-        message = ''
+def button_click(n, stored_data):
+    print('something triggered the button click')
+    print(n)
+    if n > 0 and stored_data == "goierri":
+        print('Goierri button clicked!')
+        print(n)
+        print()
         return [1]
     else:
-        return [0]  # return current state when message is empty
-
+        return [0]
 @app.callback(
     [Output('urolak-button', 'n_clicks')],
-    [Input('interval', 'n_intervals')]
+    [Input('intermediate_button', 'n_clicks'),
+     State('store_button', 'data')],
+    allow_duplicate=True,    
+    prevent_initial_call=True
 )
-def click_button(n_intervals):
-    global message
-    print('message inside function:', message)
-    if len(message) > 0 and message == 'urolak':
-        print('sending click request')
-        message = ''
+def button_click(n, stored_data):
+    print('something triggered the button click')
+    print(n)
+    if n > 0 and stored_data == "urolak":
+        print('Urolak button clicked!')
+        print(n)
+        print()
         return [1]
     else:
-        return [0]  # return current state when message is empty
-
+        return [0]
 @app.callback(
     [Output('tolosa-button', 'n_clicks')],
-    [Input('interval', 'n_intervals')]
+    [Input('intermediate_button', 'n_clicks'),
+     State('store_button', 'data')],
+    allow_duplicate=True,    
+    prevent_initial_call=True
 )
-def click_button(n_intervals):
-    global message
-    print('message inside function:', message)
-    if len(message) > 0 and message == 'tolosa':
-        print('sending click request')
-        message = ''
+def button_click(n, stored_data):
+    print('something triggered the button click')
+    print(n)
+    if n > 0 and stored_data == "tolosa":
+        print('Tolosa button clicked!')
+        print(n)
+        print()
         return [1]
     else:
-        return [0]  # return current state when message is empty
+        return [0]
 
 #################################################################################
 
@@ -1049,22 +1050,6 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
                                 )
             layer_idx += len(layer_group)
 
-        # Update projection features with selected colors, opacity, and demographic data
-        for feature in projected_geojson['features']:
-            feature_colors = []
-            for column in selected_pois:
-                column_with_mode = f"{column}_{transport_mode}"
-                color = feature['properties'].get(column_with_mode)
-                if color in color_priority:
-                    feature_colors.append(color)
-
-            # Assign the highest priority color
-            if feature_colors:
-                selected_color = next((color for color in color_priority if color in feature_colors), '#676d70')
-                feature['properties']['color'] = selected_color
-            else:
-                feature['properties']['color'] = '#676d70'
-
         # Update GeoJSON features with selected colors, opacity, and demographic data
         for feature in geojson['features']:
             feature_colors = []
@@ -1092,7 +1077,6 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
             else:
                 feature['properties']['selectedOpacity'] = 0.4  # Default opacity if no demographic selected
 
-        cityio.send_geojson(projected_geojson)
         return geojson, map_points, selected_pois, transport_mode, [dash.no_update] * len(checked_values), selected_demographic
 
     elif triggered_id == "reset-button":
@@ -1105,11 +1089,7 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
         for feature in geojson['features']:
             feature['properties']['selectedColor'] = None  # Or replace with a neutral default color
             feature['properties']['selectedOpacity'] = 0.4  # Reset opacity to default
-        
-        for feature in projected_geojson['features']:
-            feature['properties']['color'] = '#6baed6'  # Or replace with a neutral default color
 
-        cityio.send_geojson(projected_geojson)
         # Clear map points and reset controls
         return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
 
