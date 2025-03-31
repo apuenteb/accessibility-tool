@@ -5,4 +5,4 @@ venv
 **/package-lock.json
 **/__pycache__
 
-preprocessing
+preprocessing/download and create networks/data/** 
