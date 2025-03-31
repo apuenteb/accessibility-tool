@@ -11,7 +11,7 @@ import pandas as pd
 #Link to PM: https://cityscope.media.mit.edu/CS_cityscopeJS_projection_mapping/?cityscope=nombre_de_la_mesa
 
 from cityio import CityIo
-cityio = CityIo("nombre_de_la_mesa")
+cityio = CityIo(is_local=True)
 cityio.start()
 
 # python -m venv venv
@@ -992,7 +992,7 @@ def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_
         for feature in geojson['features']:
             feature['properties']['selectedColor'] = None  # Or replace with a neutral default color
             feature['properties']['selectedOpacity'] = 0.4  # Reset opacity to default
-        
+
         for feature in projected_geojson['features']:
             feature['properties']['color'] = '#6baed6'  # Or replace with a neutral default color
 
