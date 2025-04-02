@@ -91,12 +91,15 @@ def main():
     # Arduino websocket functions
     @socketio.on('connect', namespace='/test')
     def handle_connect():
+        print("Client connected")
 
     @socketio.on('disconnect', namespace='/test')
     def handle_disconnect():
+        print("Client disconnected")
 
     @socketio.on('message', namespace='/test')
     def handle_message(mess):
+        print(f"Received message: {mess}")
 
 
     # Create info control.
