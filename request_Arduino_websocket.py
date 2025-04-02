@@ -18,7 +18,7 @@ def message(data):
     print('Received message:', data)
 
 comarcas = ["donostia", "debab", "debag", "goierri", "tolosa","urolak","bidasoa"]
-#sio.connect('http://localhost:8050/test')
+#sio.connect('http://localhost:8050/')
 sio.connect('http://localhost:8050/test', namespaces=['/test'])
 print('starting loop...')
 try:
