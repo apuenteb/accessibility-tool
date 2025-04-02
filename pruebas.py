@@ -866,7 +866,7 @@ def main():
             ),
             info,
             dcc.Store(id="selected-pois", data=[]),  # Store for POIs (empty list as default),
-            dcc.Interval(id='interval', interval=1000)
+            dcc.Interval(id='interval', interval=1000),
             html.Div(
                 [
                     buttons_comarcas,
