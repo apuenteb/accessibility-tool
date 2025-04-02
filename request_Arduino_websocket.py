@@ -3,7 +3,7 @@ import serial
 
 sio = socketio.Client()
 
-ser = serial.Serial('COM7', 9600, timeout=1)  # Replace 9600 with your baudrate
+ser = serial.Serial('COM3', 9600, timeout=1)  # Replace 9600 with your baudrate
 
 @sio.event
 def connect():
