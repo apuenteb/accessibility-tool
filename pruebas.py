@@ -8,6 +8,8 @@ import json
 import dash_leaflet.express as dlx
 import pandas as pd
 from multiprocessing import freeze_support
+from flask import Flask
+from flask_socketio import SocketIO, emit
 
 #Link to PM: https://cityscope.media.mit.edu/CS_cityscopeJS_projection_mapping/?cityscope=nombre_de_la_mesa
 
@@ -86,6 +88,15 @@ def main():
             html.Div(f"Referencia: {ref}", style={"margin": "0", "padding": "0"}),
         ]
 
+    # Arduino websocket functions
+    @socketio.on('connect', namespace='/test')
+    def handle_connect():
+
+    @socketio.on('disconnect', namespace='/test')
+    def handle_disconnect():
+
+    @socketio.on('message', namespace='/test')
+    def handle_message(mess):
 
 
     # Create info control.
@@ -158,8 +169,11 @@ def main():
     # React 18 Issue: Dash Mantine Components is based on REACT 18. You must set the env variable REACT_VERSION=18.2.0 before starting up the app.
     # https://www.dash-mantine-components.com/getting-started#:~:text=React%2018%20Issue,up%20the%20app.
     _dash_renderer._set_react_version("18.2.0")
-    app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
-    server = app.server
+    #app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
+    #server = app.server
+    server = Flask(__name__)
+    app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
+    socketio = SocketIO(server)
 
     # Custom icon (using local assets)
     custom_icon = dict(
@@ -848,7 +862,8 @@ def main():
                 },
             ),
             info,
-            dcc.Store(id="selected-pois", data=[]),  # Store for POIs (empty list as default)
+            dcc.Store(id="selected-pois", data=[]),  # Store for POIs (empty list as default),
+            dcc.Interval(id='interval', interval=1000)
             html.Div(
                 [
                     buttons_comarcas,
