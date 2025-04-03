@@ -50,7 +50,7 @@ def main():
             transport_msg = html.B("Driving time to:")
 
         # Extract properties from the feature
-        ref = feature["properties"].get("Erreferentz", None)
+        ref = feature["properties"].get("Referencia", None)
 
         # Initialize poi_times as an empty list to avoid UnboundLocalError
         poi_times = []
@@ -205,8 +205,6 @@ def main():
 
     #################################################################################
 
-
-
     # Create info control.
     info = html.Div(
         children=get_info(),
@@ -299,87 +297,177 @@ def main():
         projected_geojson = json.load(f)
     cityio.send_geojson(projected_geojson)
 
-    # Load POI GeoJSON files
-    with open("assets/geojsons/filtered-centros-educativos.geojson", "r") as f:
-        schools_geojson = json.load(f)
+    ###### EAT GEOJSON
+    with open("assets/geojsons/restaurantes.geojson", "r") as f:
+        restaurantes_geojson = json.load(f)
 
-    with open("assets/geojsons/poi/bibliotecas.geojson", "r") as f:
-        libraries_geojson = json.load(f)
+    with open("assets/geojsons/cafe.geojson", "r") as f:
+        cafe_geojson = json.load(f)
 
-    with open("assets/geojsons/poi/hospitales.geojson", "r") as f:
-        hospitals_geojson = json.load(f)
-
-    with open("assets/geojsons/poi/centros_salud.geojson", "r", encoding="utf-8") as f:
-        centros_salud_geojson = json.load(f)
-
-    with open("assets/geojsons/poi/farmacias.geojson", "r", encoding="utf-8") as f:
-        farmacias_geojson = json.load(f)
-
-    with open("assets/geojsons/poi/campos_golf.geojson", "r", encoding="utf-8") as f:
-        golf_geojson = json.load(f)
+    with open("assets/geojsons/bares.geojson", "r") as f:
+        bares_geojson = json.load(f)
 
     # Dictionaries by POI categories
     eat_layers = [
-        {"label": "Special Food Services",  "checked": False},
-        {"label": "Restaurants", "checked": False},
-        {"label": "Cafes & bakeries",  "checked": False},
-        {"label": "Bars", "checked": False},
+        {"label": "Restaurants", "value":"restaurantes", "geojson":restaurantes_geojson,"checked": False},
+        {"label": "Cafes & bakeries",  "value":"cafe", "geojson":cafe_geojson,"checked": False},
+        {"label": "Bars", "value":"bares", "geojson":bares_geojson,"checked": False},
     ]
 
+    #### EDUCATION GEOJSON
+    with open("assets/geojsons/infantil.geojson", "r") as f:
+        infantil_geojson = json.load(f)
+
+    with open("assets/geojsons/primaria.geojson", "r") as f:
+        primaria_geojson = json.load(f)
+
+    with open("assets/geojsons/secundaria.geojson", "r") as f:
+        secundaria_geojson = json.load(f)
+    
+    with open("assets/geojsons/universidad.geojson", "r") as f:
+        universidad_geojson = json.load(f)
+    
+    with open("assets/geojsons/fp.geojson", "r") as f:
+        fp_geojson = json.load(f)
+    
+    with open("assets/geojsons/educ_otros.geojson", "r") as f:
+        educ_otros_geojson = json.load(f)    
+
+    with open("assets/geojsons/educ_polideportiva_recreativa.geojson", "r") as f:
+        educ_polideportiva_recreativa_geojson = json.load(f)
+
     school_layers = [
-        {"label": "Kindergarten",  "checked": False},
-        {"label": "Elementary School",  "checked": False},
-        {"label": "High School", "checked": False},
-        {"label": "Universities",  "checked": False},
-        {"label": "Professional Education", "checked": False},
-        {"label": "Other Education Centers", "checked": False},
-        {"label": "Sports and Recreation Instruction", "checked": False},
+        {"label": "Kindergarten",  "value":"infantil", "geojson":infantil_geojson,"checked": False},
+        {"label": "Elementary School",  "value":"primaria", "geojson":primaria_geojson,"checked": False},
+        {"label": "High School", "value":"secundaria", "geojson":secundaria_geojson,"checked": False},
+        {"label": "Universities",  "value":"universidad", "geojson":universidad_geojson,"checked": False},
+        {"label": "Professional Education", "value":"fp", "geojson":fp_geojson,"checked": False},
+        {"label": "Other Education Centers", "value":"educ_otros", "geojson":educ_otros_geojson,"checked": False},
+        {"label": "Sports and Recreation Instruction", "value":"educ_polideportiva_recreativa", "geojson":educ_polideportiva_recreativa_geojson,"checked": False},
     ]
+
+    #### HEALTHCARE GEOJSON
+    with open("assets/geojsons/centros_salud.geojson", "r") as f:
+        centros_salud_geojson = json.load(f)
+    
+    with open("assets/geojsons/hospital.geojson", "r") as f:
+        hospital_geojson = json.load(f)
+    
+    with open("assets/geojsons/nursing.geojson", "r") as f:
+        nursing_geojson = json.load(f)
+    
+    with open("assets/geojsons/dentista.geojson", "r") as f:
+        dentista_geojson = json.load(f)    
+
+    with open("assets/geojsons/other_healthcare.geojson", "r") as f:
+        other_healthcare_geojson = json.load(f)
 
     healthcare_layers = [
         {"label": "Clinics & local healthcare centers", "value": "centros_salud", "geojson": centros_salud_geojson,"checked": False},
-        {"label": "Hospitals", "value":"hospital","geojson":hospitals_geojson,"checked": False},
-        {"label": "Nursing & Residential Care", "checked": False},
-        {"label": "Dentists", "checked": False},
-        {"label": "Psychologist", "checked": False},
+        {"label": "Hospitals", "value":"hospital","geojson":hospital_geojson,"checked": False},
+        {"label": "Nursing & Residential Care", "value":"nursing","geojson":nursing_geojson,"checked": False},
+        {"label": "Dentists", "value":"dentista","geojson":dentista_geojson,"checked": False},
+        {"label": "Other Healthcare Services", "value":"other_healthcare","geojson":other_healthcare_geojson,"checked": False},
     ]
+
+    #### LEISURE & WELLNESS GEOJSON
+    with open("assets/geojsons/estetica.geojson", "r") as f:
+        estetica_geojson = json.load(f)
 
     leisure_layers = [
-        {"label": "Hairdresser & Barbery", "checked": False},
-        {"label": "Personal Grooming", "checked": False},
+        {"label": "Personal Grooming & Wellness", "value":"estetica","geojson":estetica_geojson,"checked": False},
     ]
+
+    #### PROFESSIONAL SERVICES GEOJSON
+    with open("assets/geojsons/administrative.geojson", "r") as f:
+        administrative_geojson = json.load(f)
+    
+    with open("assets/geojsons/finance.geojson", "r") as f:
+        finance_geojson = json.load(f)
+    
+    with open("assets/geojsons/insurance.geojson", "r") as f:
+        insurance_geojson = json.load(f)
+    
+    with open("assets/geojsons/professional_services.geojson", "r") as f:
+        professional_services_geojson = json.load(f)
+    
+    with open("assets/geojsons/real_estate.geojson", "r") as f:
+        real_estate_geojson = json.load(f)
+    
+    with open("assets/geojsons/agencia_viajes.geojson", "r") as f:
+        agencia_viajes_geojson = json.load(f)
 
     professional_layers = [
-        {"label": "Administrative and Support Services", "checked": False},
-        {"label": "Finance", "checked": False},
-        {"label": "Insurance Agency", "checked": False},
-        {"label": "Management of Companies", "checked": False},
-        {"label": "Professional Services", "checked": False},
-        {"label": "Real Estate", "checked": False},
-        {"label": "Travel Agency", "checked": False},
+        {"label": "Administrative and Support Services", "value":"administrative","geojson":administrative_geojson,"checked": False},
+        {"label": "Finance", "value":"finance","geojson":finance_geojson,"checked": False},
+        {"label": "Insurance Agency", "value":"insurance","geojson":insurance_geojson,"checked": False},
+        {"label": "Professional Services", "value":"professional_services","geojson":professional_services_geojson,"checked": False},
+        {"label": "Real Estate", "value":"real_estate","geojson":real_estate_geojson,"checked": False},
+        {"label": "Travel Agency", "value":"agencia_viajes","geojson":agencia_viajes_geojson,"checked": False},
     ]
+
+    #### PHARMACY GEOJSON
+    with open("assets/geojsons/farmacia.geojson", "r") as f:
+        farmacia_geojson = json.load(f)
 
     pharmacy_layers = [
-        {"label": "Pharmacy", "value": "farmacia", "geojson": farmacias_geojson,"checked": False},
+        {"label": "Pharmacy", "value": "farmacia", "geojson": farmacia_geojson,"checked": False},
     ]
+
+    #### SERVICE GEOJSON
+    with open("assets/geojsons/car_rental.geojson", "r") as f:
+        car_rental_geojson = json.load(f)
+    
+    with open("assets/geojsons/car_repair.geojson", "r") as f:
+        car_repair_geojson = json.load(f)
+    
+    with open("assets/geojsons/funebre.geojson", "r") as f:
+        funebre_geojson = json.load(f)
+    
+    with open("assets/geojsons/gasolinera.geojson", "r") as f:
+        gasolinera_geojson = json.load(f)
+    
+    with open("assets/geojsons/lavanderia_tintoreria.geojson", "r") as f:
+        lavanderia_tintoreria_geojson = json.load(f)
+    
+    with open("assets/geojsons/cerrajero.geojson", "r") as f:
+        cerrajero_geojson = json.load(f)
+    
+    with open("assets/geojsons/mudanzas.geojson", "r") as f:
+        mudanzas_geojson = json.load(f)
+    
+    with open("assets/geojsons/parking.geojson", "r") as f:
+        parking_geojson = json.load(f)
+    
+    with open("assets/geojsons/post_office.geojson", "r") as f:
+        post_office_geojson = json.load(f)
+    
+    with open("assets/geojsons/veterinario.geojson", "r") as f:
+        veterinario_geojson = json.load(f)
+
+    with open("assets/geojsons/gestion_residuos.geojson", "r") as f:
+        gestion_residuos_geojson = json.load(f)
 
     service_layers = [
-        {"label": "Car Rental", "checked": False},
-        {"label": "Car Repair", "checked": False},
-        {"label": "Death Care Services", "checked": False},
-        {"label": "Fuel Station", "checked": False},
-        {"label": "Laundry", "checked": False},
-        {"label": "Locksmith Errands", "checked": False},
-        {"label": "Moving Company", "checked": False},
-        {"label": "Parking", "checked": False},
-        {"label": "Post Office", "checked": False},
-        {"label": "Storage", "checked": False},
-        {"label": "Veterinary Services", "checked": False},
-        {"label": "Waste Management", "checked": False},
+        {"label": "Car Rental", "value": "car_rental", "geojson": car_rental_geojson,"checked": False},
+        {"label": "Car Repair", "value": "car_repair", "geojson": car_repair_geojson,"checked": False},
+        {"label": "Death Care Services", "value": "funebre", "geojson": funebre_geojson,"checked": False},
+        {"label": "Fuel Station", "value": "gasolinera", "geojson": gasolinera_geojson,"checked": False},
+        {"label": "Laundry", "value": "lavanderia_tintoreria", "geojson": lavanderia_tintoreria_geojson,"checked": False},
+        {"label": "Locksmith Errands", "value": "cerrajero", "geojson": cerrajero_geojson,"checked": False},
+        {"label": "Moving Company", "value": "mudanzas", "geojson": mudanzas_geojson,"checked": False},
+        {"label": "Parking", "value": "parking", "geojson": parking_geojson,"checked": False},
+        {"label": "Post Office", "value": "post_office", "geojson": post_office_geojson,"checked": False},
+        {"label": "Veterinary Services", "value": "veterinario", "geojson": veterinario_geojson,"checked": False},
+        {"label": "Waste Management", "value": "gestion_residuos", "geojson": gestion_residuos_geojson,"checked": False},
     ]
 
+    #### HOTEL GEOJSON
+    with open("assets/geojsons/hotel.geojson", "r") as f:
+        hotel_geojson = json.load(f)
+
     hotel_layers = [
-        {"label": "Hotel and Lodging", "checked": False},
+        {"label": "Hotel and Lodging", "value": "hotel", "geojson": hotel_geojson,"checked": False},
     ]
 
     consumergoods_layers = [
@@ -396,6 +484,7 @@ def main():
         {"label": "Shoe Store", "checked": False},
         {"label": "Used Merchandise", "checked": False},
         {"label": "Warehouse", "checked": False},
+        {"label": "Medical & Orthopedic Supply", "checked": False},
     ]
 
     durablegoods_layers = [
@@ -419,36 +508,42 @@ def main():
 
     entertainment_layers = [
         {"label": "Amusement Park", "checked": False},
-        {"label": "Bowling", "checked": False},
         {"label": "Casino", "checked": False},
         {"label": "Movie Theater", "checked": False},
         {"label": "Performing Arts", "checked": False},
         {"label": "Spectator Sports", "checked": False},
-        {"label": "Zoos and Nature Parks", "checked": False},
+        {"label": "Nature Parks", "checked": False},
+        {"label": "Parks and Gardens", "checked": False},
+        {"label": "Kids Playgrounds", "checked": False},
+        {"label": "Beaches", "checked": False},
     ]
 
     leisurewellness_layers = [
         {"label": "Golf Courses", "value": "golf", "geojson":golf_geojson,"checked": False},
         {"label": "Gym", "checked": False},
         {"label": "Marinas", "checked": False},
+        {"label": "Sports Recreation", "checked": False},
     ]
 
     train_layers = [
         {"label": "Euskotren", "checked": False},
-        {"label": "Renfe Cercanías", "checked": False},
+        {"label": "Train Stops (Renfe)", "checked": False},
+        {"label": "Regional Train Stops (Renfe Cercanías)", "checked": False},
     ]
 
     bus_layers=[
-        {"label": "Lurraldebus", "checked": False},
-        {"label": "DBus", "checked": False},
+        {"label": "Urban Bus Stops", "checked": False},
+        {"label": "Interurban Bus Stops", "checked": False},
     ]
 
     bike_layers=[
-        {"label": "DBizi", "checked": False},
+        {"label": "DBizi Stops", "checked": False},
+        {"label": "Bike Parking", "checked": False},
     ]
 
     religious_layers = [
-        {"label": "Religious Centers", "checked": False},
+        {"label": "Catholic Religious Centers", "checked": False},
+        {"label": "Other Religious Centers", "checked": False},
     ]
 
     # Combined for other uses
