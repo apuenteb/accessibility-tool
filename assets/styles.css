@@ -1,5 +1,0 @@
-/* styles.css */
-/* Remove the ugly default outline when clicking geojson features */
-path.leaflet-interactive:focus {
-    outline: none;
-}
