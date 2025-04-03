@@ -15,8 +15,11 @@ from flask_socketio import SocketIO, emit
 
 from cityio import CityIo
 
+message = ''
+
 def main():
     cityio = CityIo(is_local=True)
+    #cityio = CityIo(is_local=False)
     cityio.start()
 
     # python -m venv venv
@@ -30,7 +33,6 @@ def main():
     server = Flask(__name__)
     app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
     socketio = SocketIO(server)
-    message = ''
 
     def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TIME_DATA):
         # Default header when no feature is hovered
