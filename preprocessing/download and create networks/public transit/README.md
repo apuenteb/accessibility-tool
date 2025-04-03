@@ -1,0 +1,1 @@
+This repo contains the necessary files to create an integrated walk+transit urbanaccess network and then load it into a pandana network that can be used to calculate shortest paths and other accessibility metrics

@@ -1,0 +1,3 @@
+2025-02-10 10:37:24,886 INFO urbanaccess Edge and node tables formatted for Pandana with integer node ids: id_int, to_int, and from_int. Took 0.07 seconds
+2025-02-10 14:40:53,327 INFO urbanaccess Successfully read store: data/walk_network.h5 with the following keys: ['/edges', '/impedance_names', '/nodes', '/two_way']
+2025-02-10 14:40:54,651 INFO urbanaccess Successfully read store: data/walk_network.h5 with the following keys: ['/edges', '/impedance_names', '/nodes', '/two_way']
