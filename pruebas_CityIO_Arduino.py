@@ -298,13 +298,13 @@ def main():
     cityio.send_geojson(projected_geojson)
 
     ###### EAT GEOJSON
-    with open("assets/geojsons/restaurantes.geojson", "r") as f:
+    with open("assets/geojsons/restaurantes.geojson", "r", encoding='utf-8') as f:
         restaurantes_geojson = json.load(f)
 
-    with open("assets/geojsons/cafe.geojson", "r") as f:
+    with open("assets/geojsons/cafe.geojson", "r", encoding='utf-8') as f:
         cafe_geojson = json.load(f)
 
-    with open("assets/geojsons/bares.geojson", "r") as f:
+    with open("assets/geojsons/bares.geojson", "r", encoding='utf-8') as f:
         bares_geojson = json.load(f)
 
     # Dictionaries by POI categories
@@ -315,25 +315,25 @@ def main():
     ]
 
     #### EDUCATION GEOJSON
-    with open("assets/geojsons/infantil.geojson", "r") as f:
+    with open("assets/geojsons/infantil.geojson", "r", encoding='utf-8') as f:
         infantil_geojson = json.load(f)
 
-    with open("assets/geojsons/primaria.geojson", "r") as f:
+    with open("assets/geojsons/primaria.geojson", "r", encoding='utf-8') as f:
         primaria_geojson = json.load(f)
 
-    with open("assets/geojsons/secundaria.geojson", "r") as f:
+    with open("assets/geojsons/secundaria.geojson", "r", encoding='utf-8') as f:
         secundaria_geojson = json.load(f)
     
-    with open("assets/geojsons/universidad.geojson", "r") as f:
+    with open("assets/geojsons/universidad.geojson", "r", encoding='utf-8') as f:
         universidad_geojson = json.load(f)
     
-    with open("assets/geojsons/fp.geojson", "r") as f:
+    with open("assets/geojsons/fp.geojson", "r", encoding='utf-8') as f:
         fp_geojson = json.load(f)
     
-    with open("assets/geojsons/educ_otros.geojson", "r") as f:
+    with open("assets/geojsons/educ_otros.geojson", "r", encoding='utf-8') as f:
         educ_otros_geojson = json.load(f)    
 
-    with open("assets/geojsons/educ_polideportiva_recreativa.geojson", "r") as f:
+    with open("assets/geojsons/educ_polideportiva_recreativa.geojson", "r", encoding='utf-8') as f:
         educ_polideportiva_recreativa_geojson = json.load(f)
 
     school_layers = [
@@ -347,19 +347,19 @@ def main():
     ]
 
     #### HEALTHCARE GEOJSON
-    with open("assets/geojsons/centros_salud.geojson", "r") as f:
+    with open("assets/geojsons/centros_salud.geojson", "r", encoding='utf-8') as f:
         centros_salud_geojson = json.load(f)
     
-    with open("assets/geojsons/hospital.geojson", "r") as f:
+    with open("assets/geojsons/hospital.geojson", "r", encoding='utf-8') as f:
         hospital_geojson = json.load(f)
     
-    with open("assets/geojsons/nursing.geojson", "r") as f:
+    with open("assets/geojsons/nursing.geojson", "r", encoding='utf-8') as f:
         nursing_geojson = json.load(f)
     
-    with open("assets/geojsons/dentista.geojson", "r") as f:
+    with open("assets/geojsons/dentista.geojson", "r", encoding='utf-8') as f:
         dentista_geojson = json.load(f)    
 
-    with open("assets/geojsons/other_healthcare.geojson", "r") as f:
+    with open("assets/geojsons/other_healthcare.geojson", "r", encoding='utf-8') as f:
         other_healthcare_geojson = json.load(f)
 
     healthcare_layers = [
@@ -371,7 +371,7 @@ def main():
     ]
 
     #### LEISURE & WELLNESS GEOJSON
-    with open("assets/geojsons/estetica.geojson", "r") as f:
+    with open("assets/geojsons/estetica.geojson", "r", encoding='utf-8') as f:
         estetica_geojson = json.load(f)
 
     leisure_layers = [
@@ -379,22 +379,22 @@ def main():
     ]
 
     #### PROFESSIONAL SERVICES GEOJSON
-    with open("assets/geojsons/administrative.geojson", "r") as f:
+    with open("assets/geojsons/administrative.geojson", "r", encoding='utf-8') as f:
         administrative_geojson = json.load(f)
     
-    with open("assets/geojsons/finance.geojson", "r") as f:
+    with open("assets/geojsons/finance.geojson", "r", encoding='utf-8') as f:
         finance_geojson = json.load(f)
     
-    with open("assets/geojsons/insurance.geojson", "r") as f:
+    with open("assets/geojsons/insurance.geojson", "r", encoding='utf-8') as f:
         insurance_geojson = json.load(f)
     
-    with open("assets/geojsons/professional_services.geojson", "r") as f:
+    with open("assets/geojsons/professional_services.geojson", "r", encoding='utf-8') as f:
         professional_services_geojson = json.load(f)
     
-    with open("assets/geojsons/real_estate.geojson", "r") as f:
+    with open("assets/geojsons/real_estate.geojson", "r", encoding='utf-8') as f:
         real_estate_geojson = json.load(f)
     
-    with open("assets/geojsons/agencia_viajes.geojson", "r") as f:
+    with open("assets/geojsons/agencia_viajes.geojson", "r", encoding='utf-8') as f:
         agencia_viajes_geojson = json.load(f)
 
     professional_layers = [
@@ -407,7 +407,7 @@ def main():
     ]
 
     #### PHARMACY GEOJSON
-    with open("assets/geojsons/farmacia.geojson", "r") as f:
+    with open("assets/geojsons/farmacia.geojson", "r", encoding='utf-8') as f:
         farmacia_geojson = json.load(f)
 
     pharmacy_layers = [
@@ -415,37 +415,37 @@ def main():
     ]
 
     #### SERVICE GEOJSON
-    with open("assets/geojsons/car_rental.geojson", "r") as f:
+    with open("assets/geojsons/car_rental.geojson", "r", encoding='utf-8') as f:
         car_rental_geojson = json.load(f)
     
-    with open("assets/geojsons/car_repair.geojson", "r") as f:
+    with open("assets/geojsons/car_repair.geojson", "r", encoding='utf-8') as f:
         car_repair_geojson = json.load(f)
     
-    with open("assets/geojsons/funebre.geojson", "r") as f:
+    with open("assets/geojsons/funebre.geojson", "r", encoding='utf-8') as f:
         funebre_geojson = json.load(f)
     
-    with open("assets/geojsons/gasolinera.geojson", "r") as f:
+    with open("assets/geojsons/gasolinera.geojson", "r", encoding='utf-8') as f:
         gasolinera_geojson = json.load(f)
     
-    with open("assets/geojsons/lavanderia_tintoreria.geojson", "r") as f:
+    with open("assets/geojsons/lavanderia_tintoreria.geojson", "r", encoding='utf-8') as f:
         lavanderia_tintoreria_geojson = json.load(f)
     
-    with open("assets/geojsons/cerrajero.geojson", "r") as f:
+    with open("assets/geojsons/cerrajero.geojson", "r", encoding='utf-8') as f:
         cerrajero_geojson = json.load(f)
     
-    with open("assets/geojsons/mudanzas.geojson", "r") as f:
+    with open("assets/geojsons/mudanzas.geojson", "r", encoding='utf-8') as f:
         mudanzas_geojson = json.load(f)
     
-    with open("assets/geojsons/parking.geojson", "r") as f:
+    with open("assets/geojsons/parking.geojson", "r", encoding='utf-8') as f:
         parking_geojson = json.load(f)
     
-    with open("assets/geojsons/post_office.geojson", "r") as f:
+    with open("assets/geojsons/post_office.geojson", "r", encoding='utf-8') as f:
         post_office_geojson = json.load(f)
     
-    with open("assets/geojsons/veterinario.geojson", "r") as f:
+    with open("assets/geojsons/veterinario.geojson", "r", encoding='utf-8') as f:
         veterinario_geojson = json.load(f)
 
-    with open("assets/geojsons/gestion_residuos.geojson", "r") as f:
+    with open("assets/geojsons/gestion_residuos.geojson", "r", encoding='utf-8') as f:
         gestion_residuos_geojson = json.load(f)
 
     service_layers = [
@@ -463,7 +463,7 @@ def main():
     ]
 
     #### HOTEL GEOJSON
-    with open("assets/geojsons/hotel.geojson", "r") as f:
+    with open("assets/geojsons/hotel.geojson", "r", encoding='utf-8') as f:
         hotel_geojson = json.load(f)
 
     hotel_layers = [
@@ -471,43 +471,43 @@ def main():
     ]
 
     #### CONSUMER GOODS GEOJSONS
-    with open("assets/geojsons/libreria.geojson", "r") as f:
+    with open("assets/geojsons/libreria.geojson", "r", encoding='utf-8') as f:
         libreria_geojson = json.load(f)
     
-    with open("assets/geojsons/tiendas_ropa.geojson", "r") as f:
+    with open("assets/geojsons/tiendas_ropa.geojson", "r", encoding='utf-8') as f:
         tiendas_ropa_geojson = json.load(f)
     
-    with open("assets/geojsons/cosmeticos.geojson", "r") as f:
+    with open("assets/geojsons/cosmeticos.geojson", "r", encoding='utf-8') as f:
         cosmeticos_geojson = json.load(f)
     
-    with open("assets/geojsons/bazar.geojson", "r") as f:
+    with open("assets/geojsons/bazar.geojson", "r", encoding='utf-8') as f:
         bazar_geojson = json.load(f)
     
-    with open("assets/geojsons/floristeria.geojson", "r") as f:
+    with open("assets/geojsons/floristeria.geojson", "r", encoding='utf-8') as f:
         floristeria_geojson = json.load(f)
     
-    with open("assets/geojsons/gift_souvenir.geojson", "r") as f:
+    with open("assets/geojsons/gift_souvenir.geojson", "r", encoding='utf-8') as f:
         gift_souvenir_geojson = json.load(f)
     
-    with open("assets/geojsons/hobby.geojson", "r") as f:
+    with open("assets/geojsons/hobby.geojson", "r", encoding='utf-8') as f:
         hobby_geojson = json.load(f)
     
-    with open("assets/geojsons/joyeria.geojson", "r") as f:
+    with open("assets/geojsons/joyeria.geojson", "r", encoding='utf-8') as f:
         joyeria_geojson = json.load(f)
     
-    with open("assets/geojsons/optica.geojson", "r") as f:
+    with open("assets/geojsons/optica.geojson", "r", encoding='utf-8') as f:
         optica_geojson = json.load(f)
     
-    with open("assets/geojsons/pet_store.geojson", "r") as f:
+    with open("assets/geojsons/pet_store.geojson", "r", encoding='utf-8') as f:
         pet_store_geojson = json.load(f)
     
-    with open("assets/geojsons/calzado.geojson", "r") as f:
+    with open("assets/geojsons/calzado.geojson", "r", encoding='utf-8') as f:
         calzado_geojson = json.load(f)
     
-    with open("assets/geojsons/used_merchandise.geojson", "r") as f:
+    with open("assets/geojsons/used_merchandise.geojson", "r", encoding='utf-8') as f:
         used_merchandise_geojson = json.load(f)
     
-    with open("assets/geojsons/medical_orthopedic.geojson", "r") as f:
+    with open("assets/geojsons/medical_orthopedic.geojson", "r", encoding='utf-8') as f:
         medical_orthopedic_geojson = json.load(f)
 
     consumergoods_layers = [
@@ -527,13 +527,13 @@ def main():
     ]
 
     # DURABLE GOODS GEOJSONS
-    with open("assets/geojsons/vehicle_dealer.geojson", "r") as f:
+    with open("assets/geojsons/vehicle_dealer.geojson", "r", encoding='utf-8') as f:
         vehicle_dealer_geojson = json.load(f)
     
-    with open("assets/geojsons/home_goods.geojson", "r") as f:
+    with open("assets/geojsons/home_goods.geojson", "r", encoding='utf-8') as f:
         home_goods_geojson = json.load(f)
     
-    with open("assets/geojsons/wholesale.geojson", "r") as f:
+    with open("assets/geojsons/wholesale.geojson", "r", encoding='utf-8') as f:
         wholesale_geojson = json.load(f)
 
     durablegoods_layers = [
@@ -543,16 +543,16 @@ def main():
     ]
 
     # GROCERY GEOJSONS
-    with open("assets/geojsons/convenience.geojson", "r") as f:
+    with open("assets/geojsons/convenience.geojson", "r", encoding='utf-8') as f:
         convenience_geojson = json.load(f)
     
-    with open("assets/geojsons/supermercados_locales.geojson", "r") as f:
+    with open("assets/geojsons/supermercados_locales.geojson", "r", encoding='utf-8') as f:
         supermercados_locales_geojson = json.load(f)
     
-    with open("assets/geojsons/hipermercados.geojson", "r") as f:
+    with open("assets/geojsons/hipermercados.geojson", "r", encoding='utf-8') as f:
         hipermercados_geojson = json.load(f)
     
-    with open("assets/geojsons/specialty_food.geojson", "r") as f:
+    with open("assets/geojsons/specialty_food.geojson", "r", encoding='utf-8') as f:
         specialty_food_geojson = json.load(f)
 
     grocery_layers = [
@@ -563,13 +563,13 @@ def main():
     ]
 
     # CULTURAL GEOJSONS
-    with open("assets/geojsons/galerias_arte.geojson", "r") as f:
+    with open("assets/geojsons/galerias_arte.geojson", "r", encoding='utf-8') as f:
         galerias_arte_geojson = json.load(f)
     
-    with open("assets/geojsons/biblioteca.geojson", "r") as f:
+    with open("assets/geojsons/biblioteca.geojson", "r", encoding='utf-8') as f:
         biblioteca_geojson = json.load(f)
     
-    with open("assets/geojsons/museo.geojson", "r") as f:
+    with open("assets/geojsons/museo.geojson", "r", encoding='utf-8') as f:
         museo_geojson = json.load(f)
 
     cultural_layers = [
@@ -579,31 +579,31 @@ def main():
     ]
 
     # ENTERTAINMENT GEOJSONS
-    with open("assets/geojsons/parques_atracc.geojson", "r") as f:
+    with open("assets/geojsons/parques_atracc.geojson", "r", encoding='utf-8') as f:
         parques_atracc_geojson = json.load(f)
     
-    with open("assets/geojsons/azar.geojson", "r") as f:
+    with open("assets/geojsons/azar.geojson", "r", encoding='utf-8') as f:
         azar_geojson = json.load(f)
     
-    with open("assets/geojsons/cine.geojson", "r") as f:
+    with open("assets/geojsons/cine.geojson", "r", encoding='utf-8') as f:
         cine_geojson = json.load(f)
     
-    with open("assets/geojsons/artes_escenicas.geojson", "r") as f:
+    with open("assets/geojsons/artes_escenicas.geojson", "r", encoding='utf-8') as f:
         artes_escenicas_geojson = json.load(f)
     
-    with open("assets/geojsons/spectator_sports.geojson", "r") as f:
+    with open("assets/geojsons/spectator_sports.geojson", "r", encoding='utf-8') as f:
         spectator_sports_geojson = json.load(f)
     
-    with open("assets/geojsons/parques_naturales.geojson", "r") as f:
+    with open("assets/geojsons/parques_naturales.geojson", "r", encoding='utf-8') as f:
         parques_naturales_geojson = json.load(f)
     
-    with open("assets/geojsons/parks.geojson", "r") as f:
+    with open("assets/geojsons/parks.geojson", "r", encoding='utf-8') as f:
         parks_geojson = json.load(f)
     
-    with open("assets/geojsons/playground.geojson", "r") as f:
+    with open("assets/geojsons/playground.geojson", "r", encoding='utf-8') as f:
         playground_geojson = json.load(f)
     
-    with open("assets/geojsons/playas.geojson", "r") as f:
+    with open("assets/geojsons/playas.geojson", "r", encoding='utf-8') as f:
         playas_geojson = json.load(f)
 
     entertainment_layers = [
@@ -619,16 +619,16 @@ def main():
     ]
 
     # LEISURE & WELLNESS GEOJSONS
-    with open("assets/geojsons/campos_golf.geojson", "r") as f:
+    with open("assets/geojsons/campos_golf.geojson", "r", encoding='utf-8') as f:
         campos_golf_geojson = json.load(f)
     
-    with open("assets/geojsons/gym.geojson", "r") as f:
+    with open("assets/geojsons/gym.geojson", "r", encoding='utf-8') as f:
         gym_geojson = json.load(f)
     
-    with open("assets/geojsons/marina.geojson", "r") as f:
+    with open("assets/geojsons/marina.geojson", "r", encoding='utf-8') as f:
         marina_geojson = json.load(f)
     
-    with open("assets/geojsons/instalaciones_deportivas.geojson", "r") as f:
+    with open("assets/geojsons/instalaciones_deportivas.geojson", "r", encoding='utf-8') as f:
         instalaciones_deportivas_geojson = json.load(f)
 
     leisurewellness_layers = [
@@ -639,31 +639,31 @@ def main():
     ]
 
     # TRANSPORT GEOJSONS
-    with open("assets/geojsons/euskotren.geojson", "r") as f:
+    with open("assets/geojsons/euskotren.geojson", "r", encoding='utf-8') as f:
         euskotren_geojson = json.load(f)
     
-    with open("assets/geojsons/renfe.geojson", "r") as f:
+    with open("assets/geojsons/renfe.geojson", "r", encoding='utf-8') as f:
         renfe_geojson = json.load(f)
     
-    with open("assets/geojsons/renfe_cercanias.geojson", "r") as f:
+    with open("assets/geojsons/renfe_cercanias.geojson", "r", encoding='utf-8') as f:
         renfe_cercanias_geojson = json.load(f)
     
-    with open("assets/geojsons/urban.geojson", "r") as f:
+    with open("assets/geojsons/urban.geojson", "r", encoding='utf-8') as f:
         urban_geojson = json.load(f)
     
-    with open("assets/geojsons/interurban.geojson", "r") as f:
+    with open("assets/geojsons/interurban.geojson", "r", encoding='utf-8') as f:
         interurban_geojson = json.load(f)
     
-    with open("assets/geojsons/dbizi.geojson", "r") as f:
+    with open("assets/geojsons/dbizi.geojson", "r", encoding='utf-8') as f:
         dbizi_geojson = json.load(f)
     
-    with open("assets/geojsons/bike_parking.geojson", "r") as f:
+    with open("assets/geojsons/bike_parking.geojson", "r", encoding='utf-8') as f:
         bike_parking_geojson = json.load(f)
     
-    with open("assets/geojsons/religious_catholic.geojson", "r") as f:
+    with open("assets/geojsons/religious_catholic.geojson", "r", encoding='utf-8') as f:
         religious_catholic_geojson = json.load(f)
     
-    with open("assets/geojsons/religious_other.geojson", "r") as f:
+    with open("assets/geojsons/religious_other.geojson", "r", encoding='utf-8') as f:
         religious_other_geojson = json.load(f)
 
     train_layers = [
