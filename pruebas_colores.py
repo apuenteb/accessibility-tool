@@ -33,7 +33,7 @@ def main():
     buildings_df['Referencia'] = buildings_df['Referencia'].astype(str)
 
     sections_df = pd.read_csv("./assets/csv_files/sections_colores.csv", dtype=str)  # lee todas las columnas como str)
-    sections_df['CUSEC'] = buildings_df['CUSEC'].astype(str)
+    sections_df['CUSEC'] = sections_df['CUSEC'].astype(str)
     print(buildings_df.head())
 
     server = Flask(__name__)
@@ -1108,11 +1108,11 @@ def main():
     )
 
     # Define map and data
-    classes = [0, 7, 15, 22, 30, 40]
-    colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340']
+    classes = [0, 3, 6, 10, 15, 20, 25]
+    colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340', '#6a1717']
 
     # Define categories for color bar
-    ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+ min"]
+    ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+"]
     colorbar = dlx.categorical_colorbar(categories=ctg, colorscale=colorscale, width=300, height=30, position="bottomright")
 
     buttons_comarcas = html.Div(
@@ -1278,7 +1278,7 @@ def main():
 
         if triggered_id == "apply-button":
             # Logic for Apply button
-            color_priority = ['#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
+            color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
             selected_pois = []
             map_points = []
 
@@ -1324,7 +1324,7 @@ def main():
                         layer_idx += len(layer_group)
 
             # Paso 1: Seleccionar las columnas relevantes de `sections_df` para cada POI y modo de transporte
-                columns_with_mode_sections = [f"{col}_{transport_mode}" for col in selected_pois]
+                columns_with_mode_sections = [f"{col}_{transport_mode}_color" for col in selected_pois]
 
                 # Seleccionar solo las columnas relevantes para la sección
                 selected_df_sections = sections_df[columns_with_mode_sections].copy()
@@ -1342,13 +1342,9 @@ def main():
                         return None
                     else:
                         return row[columns_with_mode_sections[0]]  # Seleccionar la columna correspondiente al POI
-                
-                if selected_df_sections.empty:
-                    # crear columna color y llenarla de '#6baed6'
-                    selected_df_sections['color'] = '#6baed6'
-                else:
-                    # Aplicar la función fila por fila
-                    selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
+
+                # Aplicar la función fila por fila
+                selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
 
                 # Paso 3: Crear el DataFrame final con 'Referencia' y color
                 final_df_sections = sections_df[['CUSEC']].join(selected_df_sections['color'])
@@ -1523,4 +1519,3 @@ def main():
 if __name__ == "__main__":
     freeze_support()
     main()
-    
