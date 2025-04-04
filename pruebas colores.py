@@ -1342,9 +1342,13 @@ def main():
                         return None
                     else:
                         return row[columns_with_mode_sections[0]]  # Seleccionar la columna correspondiente al POI
-
-                # Aplicar la función fila por fila
-                selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
+                
+                if selected_df_sections.empty:
+                    # crear columna color y llenarla de '#6baed6'
+                    selected_df_sections['color'] = '#6baed6'
+                else:
+                    # Aplicar la función fila por fila
+                    selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
 
                 # Paso 3: Crear el DataFrame final con 'Referencia' y color
                 final_df_sections = sections_df[['CUSEC']].join(selected_df_sections['color'])
