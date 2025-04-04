@@ -31,6 +31,9 @@ def main():
     TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Referencia": str})
     buildings_df = pd.read_csv("./assets/csv_files/buildings_by_section.csv", dtype=str)  # lee todas las columnas como str)
     buildings_df['Referencia'] = buildings_df['Referencia'].astype(str)
+
+    sections_df = pd.read_csv("./assets/csv_files/sections_colores.csv", dtype=str)  # lee todas las columnas como str)
+    sections_df['CUSEC'] = buildings_df['CUSEC'].astype(str)
     print(buildings_df.head())
 
     server = Flask(__name__)
@@ -1320,21 +1323,58 @@ def main():
                                         print(f"Feature {feature['properties'].get('name', 'Unnamed')} has no geometry or invalid geometry")
                         layer_idx += len(layer_group)
 
-            # Update projection features with selected colors, opacity, and demographic data
-            for feature in projected_geojson['features']:
-                feature_colors = []
-                for column in selected_pois:
-                    column_with_mode = f"{column}_{transport_mode}"
-                    color = feature['properties'].get(column_with_mode)
-                    if color in color_priority:
-                        feature_colors.append(color)
+            # Paso 1: Seleccionar las columnas relevantes de `sections_df` para cada POI y modo de transporte
+                columns_with_mode_sections = [f"{col}_{transport_mode}" for col in selected_pois]
 
-                # Assign the highest priority color
-                if feature_colors:
-                    selected_color = next((color for color in color_priority if color in feature_colors), '#676d70')
-                    feature['properties']['color'] = selected_color
-                else:
-                    feature['properties']['color'] = '#676d70'
+                # Seleccionar solo las columnas relevantes para la sección
+                selected_df_sections = sections_df[columns_with_mode_sections].copy()
+                print(selected_df_sections.head())  # Ver las primeras filas del DataFrame
+
+                # Paso 2: Filtrar las columnas de color prioritario
+                # Función para determinar el color basado en la prioridad
+                def get_color_sections(row):
+                    if len(selected_pois) > 1:
+                        # Si hay más de un POI, recorrer las columnas y seleccionar el primero en `color_priority`
+                        for column in row.index:  # Iterar sobre las columnas
+                            color = row[column]
+                            if pd.notna(color) and color in color_priority:
+                                return color
+                        return None
+                    else:
+                        return row[columns_with_mode_sections[0]]  # Seleccionar la columna correspondiente al POI
+
+                # Aplicar la función fila por fila
+                selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
+
+                # Paso 3: Crear el DataFrame final con 'Referencia' y color
+                final_df_sections = sections_df[['Referencia']].join(selected_df_sections['color'])
+                print(final_df_sections.head())
+
+                # Rellenar colores faltantes con un valor por defecto
+                final_df_sections['color'] = final_df_sections['color'].fillna('#6baed6')
+
+                # Convertir a diccionario con 'Referencia' como clave
+                color_dict_sections = final_df_sections.set_index('Referencia')['color'].to_dict()
+
+                # Actualizar las características del GeoJSON proyectado con los colores seleccionados
+                for feature in projected_geojson['features']:
+                    feature_id_sections = feature['properties']['Referencia']
+                    feature_colors_sections = []
+                    
+                    # Para cada POI, obtener el color asociado desde las propiedades del GeoJSON
+                    for column in selected_pois:
+                        column_with_mode_sections = f"{column}_{transport_mode}"
+                        color = feature['properties'].get(column_with_mode_sections)
+                        
+                        if color in color_priority:
+                            feature_colors_sections.append(color)
+
+                    # Asignar el color de mayor prioridad si hay colores válidos, de lo contrario, un color por defecto
+                    if feature_colors_sections:
+                        selected_color_sections = next((color for color in color_priority if color in feature_colors_sections), '#676d70')
+                        feature['properties']['color'] = selected_color_sections
+                    else:
+                        feature['properties']['color'] = '#676d70'
             
             column_with_mode_list = [f"{col}_{transport_mode}" for col in selected_pois]
             # Seleccionamos solo las columnas relevantes para la referencia
