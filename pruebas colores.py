@@ -1347,18 +1347,18 @@ def main():
                 selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
 
                 # Paso 3: Crear el DataFrame final con 'Referencia' y color
-                final_df_sections = sections_df[['Referencia']].join(selected_df_sections['color'])
+                final_df_sections = sections_df[['CUSEC']].join(selected_df_sections['color'])
                 print(final_df_sections.head())
 
                 # Rellenar colores faltantes con un valor por defecto
                 final_df_sections['color'] = final_df_sections['color'].fillna('#6baed6')
 
                 # Convertir a diccionario con 'Referencia' como clave
-                color_dict_sections = final_df_sections.set_index('Referencia')['color'].to_dict()
+                color_dict_sections = final_df_sections.set_index('CUSEC')['color'].to_dict()
 
                 # Actualizar las características del GeoJSON proyectado con los colores seleccionados
                 for feature in projected_geojson['features']:
-                    feature_id_sections = feature['properties']['Referencia']
+                    feature_id_sections = feature['properties']['CUSEC']
                     feature_colors_sections = []
                     
                     # Para cada POI, obtener el color asociado desde las propiedades del GeoJSON
