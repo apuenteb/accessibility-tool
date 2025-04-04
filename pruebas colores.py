@@ -1109,7 +1109,7 @@ def main():
 
     # Define map and data
     classes = [0, 7, 15, 22, 30, 40]
-    colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340', '#6a1717']
+    colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340']
 
     # Define categories for color bar
     ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+ min"]
@@ -1278,7 +1278,7 @@ def main():
 
         if triggered_id == "apply-button":
             # Logic for Apply button
-            color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
+            color_priority = ['#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
             selected_pois = []
             map_points = []
 
