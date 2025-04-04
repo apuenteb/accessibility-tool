@@ -470,80 +470,221 @@ def main():
         {"label": "Hotel and Lodging", "value": "hotel", "geojson": hotel_geojson,"checked": False},
     ]
 
+    #### CONSUMER GOODS GEOJSONS
+    with open("assets/geojsons/libreria.geojson", "r") as f:
+        libreria_geojson = json.load(f)
+    
+    with open("assets/geojsons/tiendas_ropa.geojson", "r") as f:
+        tiendas_ropa_geojson = json.load(f)
+    
+    with open("assets/geojsons/cosmeticos.geojson", "r") as f:
+        cosmeticos_geojson = json.load(f)
+    
+    with open("assets/geojsons/bazar.geojson", "r") as f:
+        bazar_geojson = json.load(f)
+    
+    with open("assets/geojsons/floristeria.geojson", "r") as f:
+        floristeria_geojson = json.load(f)
+    
+    with open("assets/geojsons/gift_souvenir.geojson", "r") as f:
+        gift_souvenir_geojson = json.load(f)
+    
+    with open("assets/geojsons/hobby.geojson", "r") as f:
+        hobby_geojson = json.load(f)
+    
+    with open("assets/geojsons/joyeria.geojson", "r") as f:
+        joyeria_geojson = json.load(f)
+    
+    with open("assets/geojsons/optica.geojson", "r") as f:
+        optica_geojson = json.load(f)
+    
+    with open("assets/geojsons/pet_store.geojson", "r") as f:
+        pet_store_geojson = json.load(f)
+    
+    with open("assets/geojsons/calzado.geojson", "r") as f:
+        calzado_geojson = json.load(f)
+    
+    with open("assets/geojsons/used_merchandise.geojson", "r") as f:
+        used_merchandise_geojson = json.load(f)
+    
+    with open("assets/geojsons/medical_orthopedic.geojson", "r") as f:
+        medical_orthopedic_geojson = json.load(f)
+
     consumergoods_layers = [
-        {"label": "Book Store", "checked": False},
-        {"label": "Clothing Store", "checked": False},
-        {"label": "Cosmetics Retail", "checked": False},
-        {"label": "Department Store", "checked": False},
-        {"label": "Florist", "checked": False},
-        {"label": "Gift and Souvenir", "checked": False},
-        {"label": "Hobby Retailers", "checked": False},
-        {"label": "Jewelry Stores", "checked": False},
-        {"label": "Optical Goods", "checked": False},
-        {"label": "Pet Store", "checked": False},
-        {"label": "Shoe Store", "checked": False},
-        {"label": "Used Merchandise", "checked": False},
-        {"label": "Warehouse", "checked": False},
-        {"label": "Medical & Orthopedic Supply", "checked": False},
+        {"label": "Book Store", "value": "libreria", "geojson": libreria_geojson,"checked": False},
+        {"label": "Clothing Store", "value": "tiendas_ropa", "geojson": tiendas_ropa_geojson,"checked": False},
+        {"label": "Cosmetics Retail", "value": "cosmeticos", "geojson": cosmeticos_geojson,"checked": False},
+        {"label": "Bazar & Department Store", "value": "bazar", "geojson": bazar_geojson,"checked": False},
+        {"label": "Florist", "value": "floristeria", "geojson": floristeria_geojson,"checked": False},
+        {"label": "Gift and Souvenir", "value": "gift_souvenir", "geojson": gift_souvenir_geojson,"checked": False},
+        {"label": "Hobby Retailers", "value": "hobby", "geojson": hobby_geojson,"checked": False},
+        {"label": "Jewelry Stores", "value": "joyeria", "geojson": joyeria_geojson,"checked": False},
+        {"label": "Optical Goods", "value": "optica", "geojson": optica_geojson,"checked": False},
+        {"label": "Pet Store", "value": "pet_store", "geojson": pet_store_geojson,"checked": False},
+        {"label": "Shoe Store", "value": "calzado", "geojson": calzado_geojson,"checked": False},
+        {"label": "Used Merchandise", "value": "used_merchandise", "geojson": used_merchandise_geojson,"checked": False},
+        {"label": "Medical & Orthopedic Supply", "value": "medical_orthopedic", "geojson": medical_orthopedic_geojson,"checked": False},
     ]
+
+    # DURABLE GOODS GEOJSONS
+    with open("assets/geojsons/vehicle_dealer.geojson", "r") as f:
+        vehicle_dealer_geojson = json.load(f)
+    
+    with open("assets/geojsons/home_goods.geojson", "r") as f:
+        home_goods_geojson = json.load(f)
+    
+    with open("assets/geojsons/wholesale.geojson", "r") as f:
+        wholesale_geojson = json.load(f)
 
     durablegoods_layers = [
-        {"label": "Car Dealer", "checked": False},
-        {"label": "Home Goods Store", "checked": False},
-        {"label": "Wholesale Trade", "checked": False},
+        {"label": "Car Dealer", "value": "vehicle_dealer", "geojson": vehicle_dealer_geojson,"checked": False},
+        {"label": "Home Goods Store", "value": "home_goods", "geojson": home_goods_geojson,"checked": False},
+        {"label": "Wholesale Trade", "value": "wholesale", "geojson": wholesale_geojson,"checked": False},
     ]
+
+    # GROCERY GEOJSONS
+    with open("assets/geojsons/convenience.geojson", "r") as f:
+        convenience_geojson = json.load(f)
+    
+    with open("assets/geojsons/supermercados_locales.geojson", "r") as f:
+        supermercados_locales_geojson = json.load(f)
+    
+    with open("assets/geojsons/hipermercados.geojson", "r") as f:
+        hipermercados_geojson = json.load(f)
+    
+    with open("assets/geojsons/specialty_food.geojson", "r") as f:
+        specialty_food_geojson = json.load(f)
 
     grocery_layers = [
-        {"label": "Convenience Corner Store", "checked": False},
-        {"label": "Local Supermarket", "checked": False},
-        {"label": "Hypermarket", "checked": False},
-        {"label": "Specialty Food Retailers", "checked": False},
+        {"label": "Convenience Corner Store", "value": "convenience", "geojson": convenience_geojson,"checked": False},
+        {"label": "Local Supermarket", "value": "supermercados_locales", "geojson": supermercados_locales_geojson,"checked": False},
+        {"label": "Supermarket & Hypermarket", "value": "hipermercados", "geojson": hipermercados_geojson,"checked": False},
+        {"label": "Specialty Food Retailers", "value": "specialty_food", "geojson": specialty_food_geojson,"checked": False},
     ]
+
+    # CULTURAL GEOJSONS
+    with open("assets/geojsons/galerias_arte.geojson", "r") as f:
+        galerias_arte_geojson = json.load(f)
+    
+    with open("assets/geojsons/biblioteca.geojson", "r") as f:
+        biblioteca_geojson = json.load(f)
+    
+    with open("assets/geojsons/museo.geojson", "r") as f:
+        museo_geojson = json.load(f)
 
     cultural_layers = [
-        {"label": "Art Gallery", "checked": False},
-        {"label": "Library", "value":"biblioteca", "geojson":libraries_geojson,"checked": False},
-        {"label": "Museum", "checked": False},
+        {"label": "Art Gallery", "value":"galerias_arte", "geojson":galerias_arte_geojson,"checked": False},
+        {"label": "Library", "value":"biblioteca", "geojson":biblioteca_geojson,"checked": False},
+        {"label": "Museum", "value":"museo", "geojson":museo_geojson,"checked": False},
     ]
+
+    # ENTERTAINMENT GEOJSONS
+    with open("assets/geojsons/parques_atracc.geojson", "r") as f:
+        parques_atracc_geojson = json.load(f)
+    
+    with open("assets/geojsons/azar.geojson", "r") as f:
+        azar_geojson = json.load(f)
+    
+    with open("assets/geojsons/cine.geojson", "r") as f:
+        cine_geojson = json.load(f)
+    
+    with open("assets/geojsons/artes_escenicas.geojson", "r") as f:
+        artes_escenicas_geojson = json.load(f)
+    
+    with open("assets/geojsons/spectator_sports.geojson", "r") as f:
+        spectator_sports_geojson = json.load(f)
+    
+    with open("assets/geojsons/parques_naturales.geojson", "r") as f:
+        parques_naturales_geojson = json.load(f)
+    
+    with open("assets/geojsons/parks.geojson", "r") as f:
+        parks_geojson = json.load(f)
+    
+    with open("assets/geojsons/playground.geojson", "r") as f:
+        playground_geojson = json.load(f)
+    
+    with open("assets/geojsons/playas.geojson", "r") as f:
+        playas_geojson = json.load(f)
 
     entertainment_layers = [
-        {"label": "Amusement Park", "checked": False},
-        {"label": "Casino", "checked": False},
-        {"label": "Movie Theater", "checked": False},
-        {"label": "Performing Arts", "checked": False},
-        {"label": "Spectator Sports", "checked": False},
-        {"label": "Nature Parks", "checked": False},
-        {"label": "Parks and Gardens", "checked": False},
-        {"label": "Kids Playgrounds", "checked": False},
-        {"label": "Beaches", "checked": False},
+        {"label": "Amusement Park", "value":"parques_atracc", "geojson":parques_atracc_geojson,"checked": False},
+        {"label": "Casino", "value":"azar", "geojson":azar_geojson,"checked": False},
+        {"label": "Movie Theater", "value":"cine", "geojson":cine_geojson,"checked": False},
+        {"label": "Performing Arts", "value":"artes_escenicas", "geojson":artes_escenicas_geojson,"checked": False},
+        {"label": "Spectator Sports", "value":"spectator_sports", "geojson":spectator_sports_geojson,"checked": False},
+        {"label": "Nature Parks", "value":"parques_naturales", "geojson":parques_naturales_geojson,"checked": False},
+        {"label": "Parks and Gardens", "value":"parks", "geojson":parks_geojson,"checked": False},
+        {"label": "Kids Playgrounds", "value":"playground", "geojson":playground_geojson,"checked": False},
+        {"label": "Beaches", "value":"playas", "geojson":playas_geojson,"checked": False},
     ]
+
+    # LEISURE & WELLNESS GEOJSONS
+    with open("assets/geojsons/campos_golf.geojson", "r") as f:
+        campos_golf_geojson = json.load(f)
+    
+    with open("assets/geojsons/gym.geojson", "r") as f:
+        gym_geojson = json.load(f)
+    
+    with open("assets/geojsons/marina.geojson", "r") as f:
+        marina_geojson = json.load(f)
+    
+    with open("assets/geojsons/instalaciones_deportivas.geojson", "r") as f:
+        instalaciones_deportivas_geojson = json.load(f)
 
     leisurewellness_layers = [
-        {"label": "Golf Courses", "value": "golf", "geojson":golf_geojson,"checked": False},
-        {"label": "Gym", "checked": False},
-        {"label": "Marinas", "checked": False},
-        {"label": "Sports Recreation", "checked": False},
+        {"label": "Golf Courses", "value": "campos_golf", "geojson":campos_golf_geojson,"checked": False},
+        {"label": "Gym", "value": "gym", "geojson":gym_geojson,"checked": False},
+        {"label": "Marinas", "value": "marina", "geojson":marina_geojson, "checked": False},
+        {"label": "Sports Recreation", "value": "instalaciones_deportivas", "geojson":instalaciones_deportivas_geojson,"checked": False},
     ]
 
+    # TRANSPORT GEOJSONS
+    with open("assets/geojsons/euskotren.geojson", "r") as f:
+        euskotren_geojson = json.load(f)
+    
+    with open("assets/geojsons/renfe.geojson", "r") as f:
+        renfe_geojson = json.load(f)
+    
+    with open("assets/geojsons/renfe_cercanias.geojson", "r") as f:
+        renfe_cercanias_geojson = json.load(f)
+    
+    with open("assets/geojsons/urban.geojson", "r") as f:
+        urban_geojson = json.load(f)
+    
+    with open("assets/geojsons/interurban.geojson", "r") as f:
+        interurban_geojson = json.load(f)
+    
+    with open("assets/geojsons/dbizi.geojson", "r") as f:
+        dbizi_geojson = json.load(f)
+    
+    with open("assets/geojsons/bike_parking.geojson", "r") as f:
+        bike_parking_geojson = json.load(f)
+    
+    with open("assets/geojsons/religious_catholic.geojson", "r") as f:
+        religious_catholic_geojson = json.load(f)
+    
+    with open("assets/geojsons/religious_other.geojson", "r") as f:
+        religious_other_geojson = json.load(f)
+
     train_layers = [
-        {"label": "Euskotren", "checked": False},
-        {"label": "Train Stops (Renfe)", "checked": False},
-        {"label": "Regional Train Stops (Renfe Cercanías)", "checked": False},
+        {"label": "Euskotren", "value": "euskotren", "geojson":euskotren_geojson,"checked": False},
+        {"label": "Train Stops (Renfe)", "value": "renfe", "geojson":renfe_geojson,"checked": False},
+        {"label": "Regional Train Stops (Renfe Cercanías)", "value": "renfe_cercanias", "geojson":renfe_cercanias_geojson,"checked": False},
     ]
 
     bus_layers=[
-        {"label": "Urban Bus Stops", "checked": False},
-        {"label": "Interurban Bus Stops", "checked": False},
+        {"label": "Urban Bus Stops", "value": "urban", "geojson":urban_geojson,"checked": False},
+        {"label": "Interurban Bus Stops", "value": "interurban", "geojson":interuban_geojson,"checked": False},
     ]
 
     bike_layers=[
-        {"label": "DBizi Stops", "checked": False},
-        {"label": "Bike Parking", "checked": False},
+        {"label": "DBizi Stops", "value": "dbizi", "geojson":dbizi_geojson,"checked": False},
+        {"label": "Bike Parking", "value": "bike_parking", "geojson":bike_parking_geojson,"checked": False},
     ]
 
     religious_layers = [
-        {"label": "Catholic Religious Centers", "checked": False},
-        {"label": "Other Religious Centers", "checked": False},
+        {"label": "Catholic Religious Centers", "value": "religious_catholic", "geojson":religious_catholic_geojson,"checked": False},
+        {"label": "Other Religious Centers", "value": "religious_other", "geojson":religious_other_geojson,"checked": False},
     ]
 
     # Combined for other uses
