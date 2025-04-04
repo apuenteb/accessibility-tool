@@ -28,7 +28,7 @@ def main():
     # pip install -r requirements.txt
 
     # load csv into pandas dataframe
-    TIME_DATA = pd.read_csv('./assets/csv_files/time_data copy.csv', dtype={"Referencia": str})
+    TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Referencia": str})
 
     server = Flask(__name__)
     app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
@@ -289,7 +289,7 @@ def main():
     )
 
     # Load geojson polygons
-    with open("assets/geojsons/buildings_by_section_newcolors.geojson", "r") as f:
+    with open("assets/geojsons/buildings_by_section.geojson", "r") as f:
         geojson = json.load(f)
 
     # Load geojson polygons
