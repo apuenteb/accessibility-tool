@@ -1281,44 +1281,25 @@ def main():
 
             # Loop through layers and collect selected POIs and points
             layer_idx = 0
-            for layer in all_layers:
+            for layer_group in all_layers:
                 for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
                     if checked:
                         layer = layer_group[idx]
                         selected_pois.append(layer["value"])
 
-                        # Iterate over each feature in the geojson
                         for feature in layer["geojson"]["features"]:
-                            if feature is not None:
-                                geometry = feature.get("geometry")
-                                if geometry is not None:
-                                    # Check if geometry exists and is not null
-                                    coordinates = geometry.get("coordinates")
-                                    if coordinates is not None:
-                                        
-                                        # Ensure coordinates are valid (e.g., a pair of lon, lat)
-                                        if coordinates and len(coordinates) >= 2:
-                                            lon, lat = coordinates[0], coordinates[1]
-                                            
-                                            # Check if lat and lon are valid
-                                            if lon is not None and lat is not None:
-                                                try:
-                                                    map_points.append(
-                                                        dl.Marker(
-                                                            position=[lat, lon],
-                                                            children=[dl.Popup(layer["label"])],
-                                                            icon=custom_icon,
-                                                        )
-                                                    )
-                                                except Exception as e:
-                                                    print(f"Error adding point to map for feature {feature['properties'].get('name', 'Unnamed')}: {e}")
-                                            else:
-                                                print(f"Invalid coordinates for feature {feature['properties'].get('name', 'Unnamed')}: {coordinates}")
-                                        else:
-                                            print(f"Invalid or missing coordinates for feature {feature['properties'].get('name', 'Unnamed')}")
-                                    else:
-                                        print(f"Feature {feature['properties'].get('name', 'Unnamed')} has no geometry or invalid geometry")
-                        layer_idx += len(layer_group)
+                            coordinates = feature.get("geometry", {}).get("coordinates")
+                            if coordinates and len(coordinates) >= 2:
+                                lon, lat = coordinates
+                                if lat is not None and lon is not None:
+                                    map_points.append(
+                                        dl.Marker(
+                                            position=[lat, lon],
+                                            children=[dl.Popup(layer["label"])],
+                                            icon=custom_icon,
+                                        )
+                                    )
+                layer_idx += len(layer_group)
 
             # Update projection features with selected colors, opacity, and demographic data
             for feature in projected_geojson['features']:
