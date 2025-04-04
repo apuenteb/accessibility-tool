@@ -33,6 +33,10 @@ def main():
     buildings_df['Referencia'] = buildings_df['Referencia'].astype(str)
     print(buildings_df.head())
 
+    sections_df = pd.read_csv("./assets/csv_files/sections_colores.csv", dtype=str)  # lee todas las columnas como str)
+    sections_df['CUSEC'] = sections_df['CUSEC'].astype(str)
+    print(sections_df.head())
+
     server = Flask(__name__)
     app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
     socketio = SocketIO(server)
@@ -1281,65 +1285,74 @@ def main():
 
             # Loop through layers and collect selected POIs and points
             layer_idx = 0
-            for layer in all_layers:
+            for layer_group in all_layers:
                 for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
                     if checked:
                         layer = layer_group[idx]
                         selected_pois.append(layer["value"])
 
-                        # Iterate over each feature in the geojson
                         for feature in layer["geojson"]["features"]:
-                            if feature is not None:
-                                geometry = feature.get("geometry")
-                                if geometry is not None:
-                                    # Check if geometry exists and is not null
-                                    coordinates = geometry.get("coordinates")
-                                    if coordinates is not None:
-                                        
-                                        # Ensure coordinates are valid (e.g., a pair of lon, lat)
-                                        if coordinates and len(coordinates) >= 2:
-                                            lon, lat = coordinates[0], coordinates[1]
-                                            
-                                            # Check if lat and lon are valid
-                                            if lon is not None and lat is not None:
-                                                try:
-                                                    map_points.append(
-                                                        dl.Marker(
-                                                            position=[lat, lon],
-                                                            children=[dl.Popup(layer["label"])],
-                                                            icon=custom_icon,
-                                                        )
-                                                    )
-                                                except Exception as e:
-                                                    print(f"Error adding point to map for feature {feature['properties'].get('name', 'Unnamed')}: {e}")
-                                            else:
-                                                print(f"Invalid coordinates for feature {feature['properties'].get('name', 'Unnamed')}: {coordinates}")
-                                        else:
-                                            print(f"Invalid or missing coordinates for feature {feature['properties'].get('name', 'Unnamed')}")
-                                    else:
-                                        print(f"Feature {feature['properties'].get('name', 'Unnamed')} has no geometry or invalid geometry")
-                        layer_idx += len(layer_group)
+                            coordinates = feature.get("geometry", {}).get("coordinates")
+                            if coordinates and len(coordinates) >= 2:
+                                lon, lat = coordinates
+                                if lat is not None and lon is not None:
+                                    map_points.append(
+                                        dl.Marker(
+                                            position=[lat, lon],
+                                            children=[dl.Popup(layer["label"])],
+                                            icon=custom_icon,
+                                        )
+                                    )
+                layer_idx += len(layer_group)
 
-            # Update projection features with selected colors, opacity, and demographic data
-            for feature in projected_geojson['features']:
-                feature_colors = []
-                for column in selected_pois:
-                    column_with_mode = f"{column}_{transport_mode}"
-                    color = feature['properties'].get(column_with_mode)
-                    if color in color_priority:
-                        feature_colors.append(color)
+            #Paso 1: Seleccionar las columnas relevantes de `sections_df` para cada POI y modo de transporte
+                columns_with_mode_sections = [f"{col}_{transport_mode}_color" for col in selected_pois]
 
-                # Assign the highest priority color
-                if feature_colors:
-                    selected_color = next((color for color in color_priority if color in feature_colors), '#676d70')
-                    feature['properties']['color'] = selected_color
+                # Seleccionar solo las columnas relevantes para la sección
+                selected_df_sections = sections_df[['CUSEC'] + columns_with_mode_sections].copy()
+                print(selected_df_sections.head())  # Ver las primeras filas del DataFrame
+
+                # Paso 2: Filtrar las columnas de color prioritario
+                # Función para determinar el color basado en la prioridad
+                def get_color_sections(row):
+                    if len(selected_pois) > 1:
+                        # Si hay más de un POI, recorrer las columnas y seleccionar el primero en `color_priority`
+                        for column in row.index:  # Iterar sobre las columnas
+                            color = row[column]
+                            if pd.notna(color) and color in color_priority:
+                                return color
+                        return None
+                    else:
+                        return row[columns_with_mode_sections[0]]  # Seleccionar la columna correspondiente al POI
+                
+                if selected_df_sections.empty:
+                    # crear columna color y llenarla de '#6baed6'
+                    selected_df_sections['color'] = '#6baed6'
                 else:
-                    feature['properties']['color'] = '#676d70'
-            
+                    # Aplicar la función fila por fila
+                    selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
+
+                # Paso 3: Crear DataFrame final
+                final_df_sections = sections_df[['CUSEC']].join(selected_df_sections['color'])
+                final_df_sections['color'] = final_df_sections['color'].fillna('#6baed6')
+                color_dict_sections = final_df_sections.set_index('CUSEC')['color'].to_dict()
+
+                # Rellenar colores faltantes con un valor por defecto
+                final_df_sections['color'] = final_df_sections['color'].fillna('#6baed6')
+
+                # Convertir a diccionario con 'Referencia' como clave
+                color_dict_sections = final_df_sections.set_index('CUSEC')['color'].to_dict()
+
+                # Actualizar las características del GeoJSON proyectado con los colores seleccionados
+                for feature in projected_geojson['features']:
+                    feature_id_sections = feature['properties']['CUSEC']
+                    # Asignamos el color basado en la CUSEC, si existe
+                    feature['properties']['color'] = color_dict_sections.get(feature_id_sections, '#676d70')
+                            
             column_with_mode_list = [f"{col}_{transport_mode}" for col in selected_pois]
             # Seleccionamos solo las columnas relevantes para la referencia
             selected_df = buildings_df[column_with_mode_list].copy()
-            print(selected_df.head())  # Ver las primeras filas del DataFrame
+            print(final_df_sections.head())  # Ver las primeras filas del DataFrame
 
             # Paso 2: Filtrar las columnas de color prioritario
             # Creamos una función para determinar el color basado en la prioridad
@@ -1479,4 +1492,3 @@ def main():
 if __name__ == "__main__":
     freeze_support()
     main()
-    
