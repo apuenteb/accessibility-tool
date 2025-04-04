@@ -674,7 +674,7 @@ def main():
 
     bus_layers=[
         {"label": "Urban Bus Stops", "value": "urban", "geojson":urban_geojson,"checked": False},
-        {"label": "Interurban Bus Stops", "value": "interurban", "geojson":interuban_geojson,"checked": False},
+        {"label": "Interurban Bus Stops", "value": "interurban", "geojson":interurban_geojson,"checked": False},
     ]
 
     bike_layers=[
