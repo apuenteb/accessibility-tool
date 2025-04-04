@@ -296,7 +296,7 @@ def main():
         geojson = json.load(f)
 
     # Load geojson polygons
-    with open("assets/geojsons/sections_colores.geojson", "r") as f:
+    with open("assets/geojsons/sections_colores_small.geojson", "r") as f:
         projected_geojson = json.load(f)
     cityio.send_geojson(projected_geojson)
 
