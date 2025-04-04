@@ -1108,11 +1108,11 @@ def main():
     )
 
     # Define map and data
-    classes = [0, 3, 6, 10, 15, 20, 25]
+    classes = [0, 7, 15, 22, 30, 40]
     colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340', '#6a1717']
 
     # Define categories for color bar
-    ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+"]
+    ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+ min"]
     colorbar = dlx.categorical_colorbar(categories=ctg, colorscale=colorscale, width=300, height=30, position="bottomright")
 
     buttons_comarcas = html.Div(
