@@ -1250,27 +1250,26 @@ def main():
 
 
     @app.callback(
-        [
-            Output("geojson-layer", "data"),  # Update GeoJSON layer
-            Output("map-points", "children"),  # Update map points
-            Output("selected-pois", "data"),  # Update selected POIs in the Store
-            Output("transport-choice", "value"),  # Reset transport choice
-            Output({"type": ALL, "index": ALL}, "checked"),  # Reset POI checkboxes
-            Output("demographics-choice", "value"),  # Reset demographic choice
-        ],
-        [
-            Input("apply-button", "n_clicks"),  # Trigger on Apply button click
-            Input("reset-button", "n_clicks"),  # Trigger on Reset button click
-        ],
-        [
-            State({"type": ALL, "index": ALL}, "checked"),  # Read checkbox states
-            State("transport-choice", "value"),  # Read mode of transport selection
-            State("demographics-choice", "value"),  # Read selected demographic group
-        ],
-        prevent_initial_call=True,
-    )
+    [
+        Output("geojson-layer", "data"),
+        Output("map-points", "children"),
+        Output("selected-pois", "data"),
+        Output("transport-choice", "value"),
+        Output({"type": ALL, "index": ALL}, "checked"),
+        Output("demographics-choice", "value"),
+    ],
+    [
+        Input("apply-button", "n_clicks"),
+        Input("reset-button", "n_clicks"),
+    ],
+    [
+        State({"type": ALL, "index": ALL}, "checked"),
+        State("transport-choice", "value"),
+        State("demographics-choice", "value"),
+    ],
+    prevent_initial_call=True,
+)
     def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_mode, selected_demographic):
-        # Determine which button was clicked
         ctx = dash.callback_context
         if not ctx.triggered:
             return dash.no_update, dash.no_update, dash.no_update, dash.no_update, [dash.no_update] * len(checked_values), dash.no_update
@@ -1278,19 +1277,22 @@ def main():
         triggered_id = ctx.triggered_id
 
         if triggered_id == "apply-button":
-            # Logic for Apply button
             color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
             selected_pois = []
             map_points = []
 
-            # Loop through layers and collect selected POIs and points
+            # Depuración: imprimir checked_values
+            print("DEBUG: checked_values =", checked_values)
+
+            # Recorrer all_layers y extraer los POIs seleccionados
             layer_idx = 0
             for layer_group in all_layers:
                 for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
+                    print(f"DEBUG: layer_group index {idx}, checked = {checked}")
                     if checked:
                         layer = layer_group[idx]
                         selected_pois.append(layer["value"])
-
+                        print("DEBUG: Se agregó POI:", layer["value"])
                         for feature in layer["geojson"]["features"]:
                             coordinates = feature.get("geometry", {}).get("coordinates")
                             if coordinates and len(coordinates) >= 2:
@@ -1304,119 +1306,125 @@ def main():
                                         )
                                     )
                 layer_idx += len(layer_group)
+            
+            # Imprime la lista de POIs seleccionados
+            print("DEBUG: selected_pois =", selected_pois)
 
-            #Paso 1: Seleccionar las columnas relevantes de `sections_df` para cada POI y modo de transporte
+            # -------------------------
+            # Asignación de colores para sections (CUSEC) a partir de sections_df
+            # -------------------------
+            if selected_pois:
+                # Generar los nombres de columna según el modo de transporte y los POIs seleccionados
                 columns_with_mode_sections = [f"{col}_{transport_mode}_color" for col in selected_pois]
+                print("DEBUG: columns_with_mode_sections =", columns_with_mode_sections)
+                
+                # Seleccionar las columnas relevantes junto con 'CUSEC'
+                try:
+                    selected_df_sections = sections_df[['CUSEC'] + columns_with_mode_sections].copy()
+                except Exception as e:
+                    print("ERROR al seleccionar columnas en sections_df:", e)
+                    # En caso de error, asignar todas las secciones a un color por defecto
+                    selected_df_sections = sections_df[['CUSEC']].copy()
+                    selected_df_sections['color'] = '#6baed6'
+                
+                print("DEBUG: selected_df_sections.head() =\n", selected_df_sections.head())
 
-                # Seleccionar solo las columnas relevantes para la sección
-                selected_df_sections = sections_df[['CUSEC'] + columns_with_mode_sections].copy()
-                print(selected_df_sections.head())  # Ver las primeras filas del DataFrame
-
-                # Paso 2: Filtrar las columnas de color prioritario
                 # Función para determinar el color basado en la prioridad
                 def get_color_sections(row):
                     if len(selected_pois) > 1:
-                        # Si hay más de un POI, recorrer las columnas y seleccionar el primero en `color_priority`
-                        for column in row.index:  # Iterar sobre las columnas
+                        for col in columns_with_mode_sections:
+                            color = row.get(col)
+                            if pd.notna(color) and color in color_priority:
+                                return color
+                        return None
+                    else:
+                        # Si solo hay un POI, usamos la primera columna generada
+                        return row.get(columns_with_mode_sections[0])
+                
+                if selected_df_sections.empty:
+                    selected_df_sections['color'] = '#6baed6'
+                else:
+                    selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
+                
+                # Crear DataFrame final para sections
+                final_df_sections = sections_df[['CUSEC']].join(selected_df_sections['color'])
+                final_df_sections['color'] = final_df_sections['color'].fillna('#6baed6')
+                # Convertir a diccionario con CUSEC como clave
+                color_dict_sections = final_df_sections.set_index('CUSEC')['color'].to_dict()
+                
+                # Actualizar el GeoJSON proyectado usando el color asignado para cada CUSEC
+                for feature in projected_geojson['features']:
+                    feature_id_sections = feature['properties']['CUSEC']
+                    feature['properties']['color'] = color_dict_sections.get(feature_id_sections, '#676d70')
+            else:
+                print("DEBUG: No se han seleccionado POIs, asignando color por defecto a sections")
+                selected_df_sections = sections_df[['CUSEC']].copy()
+                selected_df_sections['color'] = '#6baed6'
+                final_df_sections = selected_df_sections
+                color_dict_sections = final_df_sections.set_index('CUSEC')['color'].to_dict()
+                for feature in projected_geojson['features']:
+                    feature_id_sections = feature['properties']['CUSEC']
+                    feature['properties']['color'] = color_dict_sections.get(feature_id_sections, '#676d70')
+
+            print("DEBUG: final_df_sections.head() =\n", final_df_sections.head())
+            
+            # -------------------------
+            # Asignación de colores para buildings (Referencia) a partir de buildings_df
+            # -------------------------
+            column_with_mode_list = [f"{col}_{transport_mode}" for col in selected_pois]
+            if column_with_mode_list:
+                selected_df = buildings_df[column_with_mode_list].copy()
+                
+                def get_color(row):
+                    if len(selected_pois) > 1:
+                        for column in row.index:
                             color = row[column]
                             if pd.notna(color) and color in color_priority:
                                 return color
                         return None
                     else:
-                        return row[columns_with_mode_sections[0]]  # Seleccionar la columna correspondiente al POI
+                        return row.get(column_with_mode_list[0])
                 
-                if selected_df_sections.empty:
-                    # crear columna color y llenarla de '#6baed6'
-                    selected_df_sections['color'] = '#6baed6'
-                else:
-                    # Aplicar la función fila por fila
-                    selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
-
-                # Paso 3: Crear DataFrame final
-                final_df_sections = sections_df[['CUSEC']].join(selected_df_sections['color'])
-                final_df_sections['color'] = final_df_sections['color'].fillna('#6baed6')
-                color_dict_sections = final_df_sections.set_index('CUSEC')['color'].to_dict()
-
-                # Rellenar colores faltantes con un valor por defecto
-                final_df_sections['color'] = final_df_sections['color'].fillna('#6baed6')
-
-                # Convertir a diccionario con 'Referencia' como clave
-                color_dict_sections = final_df_sections.set_index('CUSEC')['color'].to_dict()
-
-                # Actualizar las características del GeoJSON proyectado con los colores seleccionados
-                for feature in projected_geojson['features']:
-                    feature_id_sections = feature['properties']['CUSEC']
-                    # Asignamos el color basado en la CUSEC, si existe
-                    feature['properties']['color'] = color_dict_sections.get(feature_id_sections, '#676d70')
-                            
-            column_with_mode_list = [f"{col}_{transport_mode}" for col in selected_pois]
-            # Seleccionamos solo las columnas relevantes para la referencia
-            selected_df = buildings_df[column_with_mode_list].copy()
-            print(final_df_sections.head())  # Ver las primeras filas del DataFrame
-
-            # Paso 2: Filtrar las columnas de color prioritario
-            # Creamos una función para determinar el color basado en la prioridad
-            def get_color(row):
-                if len(selected_pois) > 1:
-                    # Si hay más de un POI, recorremos las columnas y seleccionamos el primero que esté en color_priority
-                    for column in row.index:  # Iterar sobre las columnas
-                        color = row[column]
-                        if pd.notna(color) and color in color_priority:
-                            return color
-                    return None
-                else:
-                    color = row[column_with_mode_list[0]]  # Seleccionamos la columna correspondiente al POI
-                    return color
-
-            # Aplicamos la función fila por fila
-            selected_df.loc[:, 'color'] = selected_df.apply(get_color, axis=1)
-
-            # Paso 3: Crear el DataFrame final con Referencia y color
-            # Obtenemos la 'Referencia' del DataFrame original
-            final_df = buildings_df[['Referencia']].join(selected_df['color'])
-            print(final_df.head()) 
-
-            # Finalmente, seleccionamos solo las filas con un color válido
-            final_df['color'] = final_df['color'].fillna('#6baed6')
-            color_dict = final_df.set_index('Referencia')['color'].to_dict()
-
-            # Update GeoJSON features with selected colors, opacity, and demographic data
+                selected_df.loc[:, 'color'] = selected_df.apply(get_color, axis=1)
+                final_df = buildings_df[['Referencia']].join(selected_df['color'])
+                final_df['color'] = final_df['color'].fillna('#6baed6')
+                color_dict = final_df.set_index('Referencia')['color'].to_dict()
+            else:
+                color_dict = {}
+            
+            print("DEBUG: final_df.head() =\n", final_df.head())
+            
+            # Actualizar el GeoJSON principal con los colores asignados a cada edificio
             for feature in geojson['features']:
                 feature_id = feature['properties']['Referencia']
-                # Asignamos el color basado en la referencia, si existe
                 feature['properties']['selectedColor'] = color_dict.get(feature_id, '#6baed6')
-
-                # Handle demographic opacity if a demographic is selected
+                # Manejar opacidad basada en la selección demográfica
                 if selected_demographic:
                     opacity_column = f"{selected_demographic}"
                     opacity = feature['properties'].get(opacity_column)
-                    if opacity is not None:
-                        feature['properties']['selectedOpacity'] = opacity
-                    else:
-                        feature['properties']['selectedOpacity'] = 0.4  # Default value if opacity is not found
+                    feature['properties']['selectedOpacity'] = opacity if opacity is not None else 0.4
                 else:
-                    feature['properties']['selectedOpacity'] = 0.4  # Default opacity if no demographic selected
-
+                    feature['properties']['selectedOpacity'] = 0.4
+            
+            # Enviar el GeoJSON actualizado de las secciones al servidor (o lo que haga cityio)
             cityio.send_geojson(projected_geojson)
             return geojson, map_points, selected_pois, transport_mode, [dash.no_update] * len(checked_values), selected_demographic
 
         elif triggered_id == "reset-button":
-            # Reset button logic
-            default_transport_mode = "walk"  # Replace with your default value for transport mode
+            default_transport_mode = "walk"
             default_checkboxes = [False] * len(checked_values)
-            default_demographic = None  # Reset demographic choice
+            default_demographic = None
 
-            # Clear `selectedColor` and `selectedOpacity` for all features in the GeoJSON
             for feature in geojson['features']:
-                feature['properties']['selectedColor'] = None  # Or replace with a neutral default color
-                feature['properties']['selectedOpacity'] = 0.4  # Reset opacity to default
+                feature['properties']['selectedColor'] = None
+                feature['properties']['selectedOpacity'] = 0.4
 
             for feature in projected_geojson['features']:
-                feature['properties']['color'] = '#6baed6'  # Or replace with a neutral default color
+                feature['properties']['color'] = '#6baed6'
 
             cityio.send_geojson(projected_geojson)
-            # Clear map points and reset controls
             return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
+
 
     """
     @app.callback(
