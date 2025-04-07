@@ -1239,21 +1239,21 @@ def main():
             info,
             dcc.Store(id="selected-pois", data=[]),  # Store for POIs (empty list as default),
             dcc.Interval(id='interval', interval=1000),
-            #html.Div(
-            #    [
-            #        buttons_comarcas,
-            #    ],
-            #    style={
-            #        "position": "absolute",
-            #        "top": "10px",
-            #        "left": "350px",
-            #        "width": "1200px",
-            #        "zIndex": 1000,
-            #        "padding": "10px",
-            #        "borderRadius": "5px",
+            html.Div(
+                [
+                    buttons_comarcas,
+                ],
+                style={
+                    "position": "absolute",
+                    "top": "10px",
+                    "left": "350px",
+                    "width": "1200px",
+                    "zIndex": 1000,
+                    "padding": "10px",
+                    "borderRadius": "5px",
 
-            #    },
-            #),
+                },
+            ),
         ]
     ))
 
