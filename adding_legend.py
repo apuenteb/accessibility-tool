@@ -29,7 +29,7 @@ def main():
 
     # load csv into pandas dataframe
     TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Referencia": str})
-    buildings_df = pd.read_csv("./assets/csv_files/buildings_by_section.csv", dtype=str)  # lee todas las columnas como str)
+    buildings_df = pd.read_csv("./assets/csv_files/buildings_by_section_demog.csv", dtype=str)  # lee todas las columnas como str)
     buildings_df['Referencia'] = buildings_df['Referencia'].astype(str)
     print(buildings_df.head())
 
@@ -1076,7 +1076,7 @@ def main():
         ]
     )
 
-    data_demog = [["total_women", "Female Population Density"], ["choiceB", "Foreign Population"], ["choiceC", "Income Level"]]
+    data_demog = [["total_pop", "Population Density"],["20_34", "People from 20-34"],["85_plus", "People Over 85"], ["europe_inmigrants", "Inmigrants from Europe"], ["africa_inmigrants", "Inmigrants from Africa"], ["asia_inmigrants", "Inmigrants from Asia"], ["america_inmigrants", "Inmigrants from Americas"],["oceania_inmigrants", "Inmigrants from Oceania"], ["renta_neta_persona", "Mean Income per Person"], ["renta_neta_hogar", "Mean Income per Household"]]
 
     # Define the second radio group as a separate component
     demog_menu = dbc.Accordion(
@@ -1099,7 +1099,7 @@ def main():
     ],
     id="demog-accordion",
     active_item=None,
-    style={"marginTop": "10px", "width":"360px", "padding":"5px"}
+    style={"marginTop": "10px", "width":"360px", "padding":"0px"}
     )
 
 
@@ -1244,14 +1244,14 @@ def main():
                     buttons_comarcas,
                 ],
                 style={
-                    "position": "absolute",
-                    "top": "10px",
-                    "left": "350px",
-                    "width": "1200px",
-                    "zIndex": 1000,
-                    "padding": "10px",
-                    "borderRadius": "5px",
-
+                    #"position": "absolute",
+                    #"top": "10px",
+                    #"left": "350px",
+                    #"width": "1200px",
+                    #"zIndex": 1000,
+                    #"padding": "10px",
+                    #"borderRadius": "5px",
+                    #"display": "none"
                 },
             ),
         ]
@@ -1296,8 +1296,9 @@ def main():
     def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_mode, selected_demographic):
         ctx = dash.callback_context
         if not ctx.triggered:
-            return dash.no_update, dash.no_update, dash.no_update, dash.no_update, [dash.no_update] * len(checked_values), dash.no_update
-
+            return (dash.no_update, dash.no_update, dash.no_update, dash.no_update,
+                    [dash.no_update] * len(checked_values), dash.no_update)
+        
         triggered_id = ctx.triggered_id
 
         if triggered_id == "apply-button":
@@ -1305,10 +1306,10 @@ def main():
             selected_pois = []
             map_points = []
 
-            # Depuración: imprimir checked_values
+            # Debug: print checked_values
             print("DEBUG: checked_values =", checked_values)
 
-            # Recorrer all_layers y extraer los POIs seleccionados
+            # Loop through all_layers to extract selected POIs and build markers
             layer_idx = 0
             for layer_group in all_layers:
                 for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
@@ -1331,29 +1332,23 @@ def main():
                                     )
                 layer_idx += len(layer_group)
             
-            # Imprime la lista de POIs seleccionados
             print("DEBUG: selected_pois =", selected_pois)
 
             # -------------------------
-            # Asignación de colores para sections (CUSEC) a partir de sections_df
+            # Color assignment for sections (CUSEC) based on sections_df
             # -------------------------
             if selected_pois:
-                # Generar los nombres de columna según el modo de transporte y los POIs seleccionados
                 columns_with_mode_sections = [f"{col}_{transport_mode}_color" for col in selected_pois]
                 print("DEBUG: columns_with_mode_sections =", columns_with_mode_sections)
-                
-                # Seleccionar las columnas relevantes junto con 'CUSEC'
                 try:
                     selected_df_sections = sections_df[['CUSEC'] + columns_with_mode_sections].copy()
                 except Exception as e:
                     print("ERROR al seleccionar columnas en sections_df:", e)
-                    # En caso de error, asignar todas las secciones a un color por defecto
                     selected_df_sections = sections_df[['CUSEC']].copy()
                     selected_df_sections['color'] = '#6baed6'
                 
                 print("DEBUG: selected_df_sections.head() =\n", selected_df_sections.head())
 
-                # Función para determinar el color basado en la prioridad
                 def get_color_sections(row):
                     if len(selected_pois) > 1:
                         for col in columns_with_mode_sections:
@@ -1362,7 +1357,6 @@ def main():
                                 return color
                         return None
                     else:
-                        # Si solo hay un POI, usamos la primera columna generada
                         return row.get(columns_with_mode_sections[0])
                 
                 if selected_df_sections.empty:
@@ -1370,13 +1364,10 @@ def main():
                 else:
                     selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
                 
-                # Crear DataFrame final para sections
                 final_df_sections = sections_df[['CUSEC']].join(selected_df_sections['color'])
                 final_df_sections['color'] = final_df_sections['color'].fillna('#6baed6')
-                # Convertir a diccionario con CUSEC como clave
                 color_dict_sections = final_df_sections.set_index('CUSEC')['color'].to_dict()
                 
-                # Actualizar el GeoJSON proyectado usando el color asignado para cada CUSEC
                 for feature in projected_geojson['features']:
                     feature_id_sections = feature['properties']['CUSEC']
                     feature['properties']['color'] = color_dict_sections.get(feature_id_sections, '#676d70')
@@ -1393,7 +1384,7 @@ def main():
             print("DEBUG: final_df_sections.head() =\n", final_df_sections.head())
             
             # -------------------------
-            # Asignación de colores para buildings (Referencia) a partir de buildings_df
+            # Color assignment for buildings (Referencia) based on buildings_df
             # -------------------------
             column_with_mode_list = [f"{col}_{transport_mode}" for col in selected_pois]
             if column_with_mode_list:
@@ -1413,24 +1404,37 @@ def main():
                 final_df = buildings_df[['Referencia']].join(selected_df['color'])
                 final_df['color'] = final_df['color'].fillna('#6baed6')
                 color_dict = final_df.set_index('Referencia')['color'].to_dict()
+                print("DEBUG: final_df.head() =\n", final_df.head())
             else:
                 color_dict = {}
+                print("DEBUG: No POIs selected for buildings; final_df not computed.")
             
-            print("DEBUG: final_df.head() =\n", final_df.head())
+            # Precompute a dictionary for demographic opacity from buildings_df based on CUSEC.
+            if selected_demographic:
+                # Ensure the selected_demographic column exists in buildings_df
+                demog_dict = buildings_df.set_index('CUSEC')[selected_demographic].to_dict()
+            else:
+                demog_dict = {}
             
-            # Actualizar el GeoJSON principal con los colores asignados a cada edificio
+            # -------------------------
+            # Update building GeoJSON features (regular geojson) with color and demographic opacity
+            # -------------------------
             for feature in geojson['features']:
                 feature_id = feature['properties']['Referencia']
+                feature_sec = feature['properties']['CUSEC']
                 feature['properties']['selectedColor'] = color_dict.get(feature_id, '#6baed6')
-                # Manejar opacidad basada en la selección demográfica
+                # Update opacity based on demographic from demog_dict (matched by CUSEC)
                 if selected_demographic:
-                    opacity_column = f"{selected_demographic}"
-                    opacity = feature['properties'].get(opacity_column)
-                    feature['properties']['selectedOpacity'] = opacity if opacity is not None else 0.4
+                    opacity = demog_dict.get(feature_sec, 0.4)
+                    try:
+                        opacity = float(opacity)
+                    except (ValueError, TypeError):
+                        opacity = 0.4
+                    feature['properties']['selectedOpacity'] = opacity
                 else:
                     feature['properties']['selectedOpacity'] = 0.4
             
-            # Enviar el GeoJSON actualizado de las secciones al servidor (o lo que haga cityio)
+            # Send updated sections geojson
             cityio.send_geojson(projected_geojson)
             return geojson, map_points, selected_pois, transport_mode, [dash.no_update] * len(checked_values), selected_demographic
 
@@ -1448,6 +1452,8 @@ def main():
 
             cityio.send_geojson(projected_geojson)
             return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
+
+
 
 
     """
