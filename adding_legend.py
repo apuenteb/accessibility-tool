@@ -1082,26 +1082,33 @@ def main():
     demog_menu = dbc.Accordion(
     [
         dbc.AccordionItem(
-            dmc.RadioGroup(
-                children=dmc.Stack(
-                    [dmc.Radio(label, value=value) for value, label in data_demog],
-                    my=10,
+            html.Div(
+                dmc.RadioGroup(
+                    children=dmc.Stack(
+                        [dmc.Radio(label, value=value, style={"textAlign": "left", "margin": "0", "padding": "0"})
+                         for value, label in data_demog],
+                        my=10,
+                    ),
+                    id="demographics-choice",
+                    value=None,
+                    size="sm",
+                    mb=10,
+                    style={"textAlign": "left", "margin": "0", "padding": "0"}
                 ),
-                id="demographics-choice",
-                value=None,
-                size="sm",
-                mb=10,
             ),
             title="Select Demographic Data",
             item_id="demog-accordion-item",
-            style={"maxHeight": "150px", "overflowY": "auto"}
         )
     ],
     id="demog-accordion",
     active_item=None,
-    style={"marginTop": "10px", "width":"360px", "padding":"0px"}
+    style={
+            "backgroundColor": "rgba(255, 255, 255, 0.9)",
+            "padding": "2px",
+            "borderRadius": "5px",
+            "width": "360px",
+        },
     )
-
 
     buttons = html.Div(
         children=[
@@ -1251,7 +1258,7 @@ def main():
                     #"zIndex": 1000,
                     #"padding": "10px",
                     #"borderRadius": "5px",
-                    #"display": "none"
+                    "display": "none"
                 },
             ),
         ]
