@@ -1079,35 +1079,49 @@ def main():
     data_demog = [["total_pop", "Population Density"],["20_34", "People from 20-34"],["85_plus", "People Over 85"], ["europe_inmigrants", "Inmigrants from Europe"], ["africa_inmigrants", "Inmigrants from Africa"], ["asia_inmigrants", "Inmigrants from Asia"], ["america_inmigrants", "Inmigrants from Americas"],["oceania_inmigrants", "Inmigrants from Oceania"], ["renta_neta_persona", "Mean Income per Person"], ["renta_neta_hogar", "Mean Income per Household"]]
 
     # Define the second radio group as a separate component
-    demog_menu = dbc.Accordion(
-    [
-        dbc.AccordionItem(
-            html.Div(
+    demog_menu = html.Div(
+    dbc.Accordion(
+        [
+            dbc.AccordionItem(
+                # radios live here
                 dmc.RadioGroup(
                     children=dmc.Stack(
-                        [dmc.Radio(label, value=value, style={"textAlign": "left", "margin": "0", "padding": "0"})
-                         for value, label in data_demog],
+                        [
+                            dmc.Radio(label, value=value, style={"margin": "0", "padding": "0"})
+                            for value, label in data_demog
+                        ],
                         my=10,
                     ),
                     id="demographics-choice",
                     value=None,
                     size="sm",
                     mb=10,
-                    style={"textAlign": "left", "margin": "0", "padding": "0"}
+                    style={
+                        # symmetric horizontal padding
+                        "padding": "0 10px",
+                        "margin": "0",
+                        "textAlign": "left",
+                    },
                 ),
-            ),
-            title="Select Demographic Data",
-            item_id="demog-accordion-item",
-        )
-    ],
-    id="demog-accordion",
-    active_item=None,
+                title="Select Demographic Data",
+                item_id="demog-accordion-item",
+                style={
+                    "padding": "0",        # no extra padding on the item
+                    "maxHeight": "150px",
+                    "overflowY": "auto",
+                },
+            )
+        ],
+        id="demog-accordion",
+        active_item=None,
+        style={"padding": "0"},      # no accordion padding
+    ),
     style={
-            "backgroundColor": "rgba(255, 255, 255, 0.9)",
-            "padding": "2px",
-            "borderRadius": "5px",
-            "width": "360px",
-        },
+        "backgroundColor": "rgba(255, 255, 255, 0.9)",
+        "padding": "2px",
+        "borderRadius": "5px",
+        "width": "360px",
+    },  
     )
 
     buttons = html.Div(
@@ -1150,84 +1164,66 @@ def main():
     )
 
     # Layout
-    app.layout = dmc.MantineProvider(html.Div(
+    app.layout = dmc.MantineProvider(
+    html.Div(
         [
             # Map Component
             dl.Map(
-            [
-                dl.TileLayer(url='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', maxZoom=20),
-                dl.GeoJSON(
-                    id="geojson-layer",
-                    data=geojson,
-                    options=dict(style=visual_style, onEachFeature=on_each_feature),
-                ),
-                dl.LayerGroup(id="map-points"),
-                # Info message div above the colorbar, positioned in the bottom right:
-                html.Div(
-                id="info-text",
-                children="",
-                style={
-                    "position": "absolute",
-                    "bottom": "90px",  # Adjust as needed
-                    "right": "60px",
-                    "zIndex": 1100,
-                    "backgroundColor": "rgba(255, 255, 255, 0.8)",
-                    "padding": "5px 10px",
-                    "borderRadius": "5px",
-                    "width": "250px",         # Fixed width
-                    "whiteSpace": "normal",   # Allow wrapping
-                },
+                [
+                    dl.TileLayer(
+                        url='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                        maxZoom=20
+                    ),
+                    dl.GeoJSON(
+                        id="geojson-layer",
+                        data=geojson,
+                        options=dict(
+                            style=visual_style,
+                            onEachFeature=on_each_feature
+                        ),
+                    ),
+                    dl.LayerGroup(id="map-points"),
+                    # Info message div above the colorbar, positioned in the bottom right:
+                    html.Div(
+                        id="info-text",
+                        children="",
+                        style={
+                            "position": "absolute",
+                            "bottom": "90px",
+                            "right": "60px",
+                            "zIndex": 1100,
+                            "backgroundColor": "rgba(255, 255, 255, 0.8)",
+                            "padding": "5px 10px",
+                            "borderRadius": "5px",
+                            "width": "250px",
+                            "whiteSpace": "normal",
+                        },
+                    ),
+                    colorbar,
+                    dl.ZoomControl(position="bottomright", id="zoom"),
+                ],
+                center=[43.16, -2.2],
+                zoom=11,
+                style={"height": "100vh", "width": "100%"},
+                zoomControl=False,
+                id="map",
             ),
-                colorbar,
-                dl.ZoomControl(position="bottomright", id="zoom"),
-            ],
-            center=[43.16, -2.2],
-            zoom=11,
-            style={"height": "100vh", "width": "100%"},
-            zoomControl=False,
-            id="map",
-        ),
+
             # Sidebar Container
             html.Div(
                 [
                     # All Menus in One Container
                     html.Div(
                         [
-                            html.Div(
-                                mt_menu,
-                                style={
-                                    "marginBottom": "2px",
-                                    "padding": "10px",
-                                    "backgroundColor": "white",
-                                    "borderRadius": "5px",
-                                },
-                            ),
-                            html.Div(
-                                poi_menu,
-                            ),
-                            html.Div(
-                                demog_menu,
-                                style={
-                                    "marginBottom": "2px",
-                                    "padding": "10px",
-                                    "backgroundColor": "white",
-                                    "borderRadius": "5px",
-
-                                },
-                            ),
-                            html.Div(
-                                buttons,
-                                style={
-
-                                    "borderRadius": "5px",
-                                    "backgroundColor": "rgba(255, 255, 255)",
-                                },
-                            ),
+                            html.Div(mt_menu, style={"marginBottom": "10px", "padding": "10px",}),
+                            html.Div(poi_menu, style={"marginBottom": "10px"}),
+                            html.Div(demog_menu, style={"marginBottom": "10px"}),
+                            html.Div(buttons, style={"marginBottom": "10px"}),
                         ],
                         style={
                             "display": "flex",
                             "flexDirection": "column",
-                            "gap": "2px",  # Space between menus
+                            "gap": "0",
                         },
                     ),
                 ],
@@ -1236,33 +1232,25 @@ def main():
                     "top": "10px",
                     "left": "10px",
                     "width": "380px",
-                    "backgroundColor": "rgba(255, 255, 255)",
+                    "backgroundColor": "rgba(255, 255, 255, 0.9)",
                     "zIndex": 1000,
-                    "padding": "10px",
+                    "padding": "10px",           # uniform gutter for all menus
                     "borderRadius": "5px",
                     "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
                 },
             ),
+
             info,
-            dcc.Store(id="selected-pois", data=[]),  # Store for POIs (empty list as default),
+            dcc.Store(id="selected-pois", data=[]),
             dcc.Interval(id='interval', interval=1000),
             html.Div(
-                [
-                    buttons_comarcas,
-                ],
-                style={
-                    #"position": "absolute",
-                    #"top": "10px",
-                    #"left": "350px",
-                    #"width": "1200px",
-                    #"zIndex": 1000,
-                    #"padding": "10px",
-                    #"borderRadius": "5px",
-                    "display": "none"
-                },
+                [buttons_comarcas],
+                style={"display": "none"},
             ),
         ]
-    ))
+    )
+    )
+
 
     # Update the callback to display the hovered feature's information, including CUSEC
     @callback(
