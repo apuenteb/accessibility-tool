@@ -1297,7 +1297,7 @@ def main():
         triggered_id = ctx.triggered_id
 
         if triggered_id == "apply-button":
-            color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
+            color_priority = ['#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
             selected_pois = []
             map_points = []
 
@@ -1346,13 +1346,19 @@ def main():
 
                 def get_color_sections(row):
                     if len(selected_pois) > 1:
+                        worst_color = None
+                        worst_index = float('inf')
                         for col in columns_with_mode_sections:
                             color = row.get(col)
                             if pd.notna(color) and color in color_priority:
-                                return color
-                        return None
+                                index = color_priority.index(color)
+                                if index < worst_index:
+                                    worst_index = index
+                                    worst_color = color
+                        return worst_color
                     else:
                         return row.get(columns_with_mode_sections[0])
+
                 
                 if selected_df_sections.empty:
                     selected_df_sections['color'] = '#6baed6'
@@ -1387,13 +1393,19 @@ def main():
                 
                 def get_color(row):
                     if len(selected_pois) > 1:
+                        worst_color = None
+                        worst_index = float('inf')
                         for column in row.index:
                             color = row[column]
                             if pd.notna(color) and color in color_priority:
-                                return color
-                        return None
+                                index = color_priority.index(color)
+                                if index < worst_index:
+                                    worst_index = index
+                                    worst_color = color
+                        return worst_color
                     else:
                         return row.get(column_with_mode_list[0])
+
                 
                 selected_df.loc[:, 'color'] = selected_df.apply(get_color, axis=1)
                 final_df = buildings_df[['Referencia']].join(selected_df['color'])
@@ -1447,9 +1459,6 @@ def main():
 
             cityio.send_geojson(projected_geojson)
             return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
-
-
-
 
     """
     @app.callback(
