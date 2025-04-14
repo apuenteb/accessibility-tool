@@ -29,7 +29,7 @@ def main():
 
     # load csv into pandas dataframe
     TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Referencia": str})
-    buildings_df = pd.read_csv("./assets/csv_files/buildings_by_section_demog.csv", dtype=str)  # lee todas las columnas como str)
+    buildings_df = pd.read_csv("./assets/csv_files/buildings_by_section.csv", dtype=str)  # lee todas las columnas como str)
     buildings_df['Referencia'] = buildings_df['Referencia'].astype(str)
     print(buildings_df.head())
 
@@ -1333,7 +1333,7 @@ def main():
             # Color assignment for sections (CUSEC) based on sections_df
             # -------------------------
             if selected_pois:
-                columns_with_mode_sections = [f"{col}_{transport_mode}_color" for col in selected_pois]
+                columns_with_mode_sections = [f"{col}_{transport_mode}" for col in selected_pois]
                 print("DEBUG: columns_with_mode_sections =", columns_with_mode_sections)
                 try:
                     selected_df_sections = sections_df[['CUSEC'] + columns_with_mode_sections].copy()
