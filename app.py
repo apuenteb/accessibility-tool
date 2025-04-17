@@ -1405,8 +1405,7 @@ def main():
                         return worst_color
                     else:
                         return row.get(column_with_mode_list[0])
-
-                
+                    
                 selected_df.loc[:, 'color'] = selected_df.apply(get_color, axis=1)
                 final_df = buildings_df[['Referencia']].join(selected_df['color'])
                 final_df['color'] = final_df['color'].fillna('#6baed6')
@@ -1420,6 +1419,7 @@ def main():
             if selected_demographic:
                 # Ensure the selected_demographic column exists in buildings_df
                 demog_dict = buildings_df.set_index('CUSEC')[selected_demographic].to_dict()
+                print("DEBUG: demog_dict =", demog_dict)
             else:
                 demog_dict = {}
             
