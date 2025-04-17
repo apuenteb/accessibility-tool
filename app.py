@@ -29,6 +29,13 @@ def main():
 
     # load csv into pandas dataframe
     TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Referencia": str})
+    buildings_df = pd.read_csv("./assets/csv_files/buildings_by_section_demog.csv", dtype=str)  # lee todas las columnas como str)
+    buildings_df['Referencia'] = buildings_df['Referencia'].astype(str)
+    print(buildings_df.head())
+
+    sections_df = pd.read_csv("./assets/csv_files/sections_colores.csv", dtype=str)  # lee todas las columnas como str)
+    sections_df['CUSEC'] = sections_df['CUSEC'].astype(str)
+    print(sections_df.head())
 
     server = Flask(__name__)
     app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
@@ -289,11 +296,11 @@ def main():
     )
 
     # Load geojson polygons
-    with open("assets/geojsons/buildings_by_section.geojson", "r") as f:
+    with open("assets/geojsons/buildings_by_section_small.geojson", "r") as f:
         geojson = json.load(f)
 
     # Load geojson polygons
-    with open("assets/geojsons/sections_colores.geojson", "r") as f:
+    with open("assets/geojsons/sections_colores_small.geojson", "r") as f:
         projected_geojson = json.load(f)
     cityio.send_geojson(projected_geojson)
 
@@ -1069,23 +1076,52 @@ def main():
         ]
     )
 
-    data_demog = [["total_women", "Female Population Density"], ["choiceB", "Foreign Population"], ["choiceC", "Income Level"]]
+    data_demog = [["total_pop", "Population Density"],["20_34", "People from 20-34"],["85_plus", "People Over 85"], ["europe_inmigrants", "Inmigrants from Europe"], ["africa_inmigrants", "Inmigrants from Africa"], ["asia_inmigrants", "Inmigrants from Asia"], ["america_inmigrants", "Inmigrants from Americas"],["oceania_inmigrants", "Inmigrants from Oceania"], ["renta_neta_persona", "Mean Income per Person"], ["renta_neta_hogar", "Mean Income per Household"]]
 
     # Define the second radio group as a separate component
     demog_menu = html.Div(
-        children=[
-            dmc.RadioGroup(
-                children=dmc.Stack(
-                    [dmc.Radio(label, value=value) for value, label in data_demog],
-                    my=10,
+    dbc.Accordion(
+        [
+            dbc.AccordionItem(
+                # radios live here
+                dmc.RadioGroup(
+                    children=dmc.Stack(
+                        [
+                            dmc.Radio(label, value=value, style={"margin": "0", "padding": "0"})
+                            for value, label in data_demog
+                        ],
+                        my=10,
+                    ),
+                    id="demographics-choice",
+                    value=None,
+                    size="sm",
+                    mb=10,
+                    style={
+                        # symmetric horizontal padding
+                        "padding": "0 10px",
+                        "margin": "0",
+                        "textAlign": "left",
+                    },
                 ),
-                id="demographics-choice",
-                value=None,
-                label="Select the demographic data to display",
-                size="sm",
-                mb=10,
+                title="Select Demographic Data",
+                item_id="demog-accordion-item",
+                style={
+                    "padding": "0",        # no extra padding on the item
+                    "maxHeight": "150px",
+                    "overflowY": "auto",
+                },
             )
-        ]
+        ],
+        id="demog-accordion",
+        active_item=None,
+        style={"padding": "0"},      # no accordion padding
+    ),
+    style={
+        "backgroundColor": "rgba(255, 255, 255, 0.9)",
+        "padding": "2px",
+        "borderRadius": "5px",
+        "width": "360px",
+    },  
     )
 
     buttons = html.Div(
@@ -1102,11 +1138,11 @@ def main():
     )
 
     # Define map and data
-    classes = [0, 3, 6, 10, 15, 20, 25]
-    colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340', '#6a1717']
+    classes = [0, 7, 15, 22, 30, 40]
+    colorscale = ['#00572a', '#7CB342', '#FFFF00', '#FFA500', '#D50000', '#8f0340']
 
     # Define categories for color bar
-    ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+"]
+    ctg = [f"{cls}-{classes[i + 1]}" for i, cls in enumerate(classes[:-1])] + [f"{classes[-1]}+ min"]
     colorbar = dlx.categorical_colorbar(categories=ctg, colorscale=colorscale, width=300, height=30, position="bottomright")
 
     buttons_comarcas = html.Div(
@@ -1128,68 +1164,66 @@ def main():
     )
 
     # Layout
-    app.layout = dmc.MantineProvider(html.Div(
+    app.layout = dmc.MantineProvider(
+    html.Div(
         [
             # Map Component
             dl.Map(
                 [
-                    dl.TileLayer(url='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', maxZoom=20),
+                    dl.TileLayer(
+                        url='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                        maxZoom=20
+                    ),
                     dl.GeoJSON(
                         id="geojson-layer",
-                        data=geojson,  # Replace with your actual endpoint
-                        options=dict(style=visual_style, onEachFeature=on_each_feature),
+                        data=geojson,
+                        options=dict(
+                            style=visual_style,
+                            onEachFeature=on_each_feature
+                        ),
                     ),
                     dl.LayerGroup(id="map-points"),
+                    # Info message div above the colorbar, positioned in the bottom right:
+                    html.Div(
+                        id="info-text",
+                        children="",
+                        style={
+                            "position": "absolute",
+                            "bottom": "90px",
+                            "right": "60px",
+                            "zIndex": 1100,
+                            "backgroundColor": "rgba(255, 255, 255, 0.8)",
+                            "padding": "5px 10px",
+                            "borderRadius": "5px",
+                            "width": "250px",
+                            "whiteSpace": "normal",
+                        },
+                    ),
                     colorbar,
                     dl.ZoomControl(position="bottomright", id="zoom"),
                 ],
                 center=[43.16, -2.2],
                 zoom=11,
                 style={"height": "100vh", "width": "100%"},
-                zoomControl=False,  # Disable default zoom control
+                zoomControl=False,
                 id="map",
             ),
+
             # Sidebar Container
             html.Div(
                 [
                     # All Menus in One Container
                     html.Div(
                         [
-                            html.Div(
-                                mt_menu,
-                                style={
-                                    "marginBottom": "2px",
-                                    "padding": "10px",
-                                    "backgroundColor": "white",
-                                    "borderRadius": "5px",
-                                },
-                            ),
-                            html.Div(
-                                poi_menu,
-                            ),
-                            html.Div(
-                                demog_menu,
-                                style={
-                                    "marginBottom": "2px",
-                                    "padding": "10px",
-                                    "backgroundColor": "white",
-                                    "borderRadius": "5px",
-
-                                },
-                            ),
-                            html.Div(
-                                buttons,
-                                style={
-
-                                    "borderRadius": "5px",
-                                    "backgroundColor": "rgba(255, 255, 255)",
-                                },
-                            ),
+                            html.Div(mt_menu, style={"marginBottom": "10px", "padding": "10px",}),
+                            html.Div(poi_menu, style={"marginBottom": "10px"}),
+                            html.Div(demog_menu, style={"marginBottom": "10px"}),
+                            html.Div(buttons, style={"marginBottom": "10px"}),
                         ],
                         style={
                             "display": "flex",
                             "flexDirection": "column",
-                            "gap": "2px",  # Space between menus
+                            "gap": "0",
                         },
                     ),
                 ],
@@ -1198,33 +1232,25 @@ def main():
                     "top": "10px",
                     "left": "10px",
                     "width": "380px",
-                    "backgroundColor": "rgba(255, 255, 255)",
+                    "backgroundColor": "rgba(255, 255, 255, 0.9)",
                     "zIndex": 1000,
-                    "padding": "10px",
+                    "padding": "10px",           # uniform gutter for all menus
                     "borderRadius": "5px",
                     "boxShadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
                 },
             ),
+
             info,
-            dcc.Store(id="selected-pois", data=[]),  # Store for POIs (empty list as default),
+            dcc.Store(id="selected-pois", data=[]),
             dcc.Interval(id='interval', interval=1000),
             html.Div(
-                [
-                    buttons_comarcas,
-                ],
-                style={
-                    "position": "absolute",
-                    "top": "10px",
-                    "left": "350px",
-                    "width": "1200px",
-                    "zIndex": 1000,
-                    "padding": "10px",
-                    "borderRadius": "5px",
-
-                },
+                [buttons_comarcas],
+                style={"display": "none"},
             ),
         ]
-    ))
+    )
+    )
+
 
     # Update the callback to display the hovered feature's information, including CUSEC
     @callback(
@@ -1243,47 +1269,50 @@ def main():
 
 
     @app.callback(
-        [
-            Output("geojson-layer", "data"),  # Update GeoJSON layer
-            Output("map-points", "children"),  # Update map points
-            Output("selected-pois", "data"),  # Update selected POIs in the Store
-            Output("transport-choice", "value"),  # Reset transport choice
-            Output({"type": ALL, "index": ALL}, "checked"),  # Reset POI checkboxes
-            Output("demographics-choice", "value"),  # Reset demographic choice
-        ],
-        [
-            Input("apply-button", "n_clicks"),  # Trigger on Apply button click
-            Input("reset-button", "n_clicks"),  # Trigger on Reset button click
-        ],
-        [
-            State({"type": ALL, "index": ALL}, "checked"),  # Read checkbox states
-            State("transport-choice", "value"),  # Read mode of transport selection
-            State("demographics-choice", "value"),  # Read selected demographic group
-        ],
-        prevent_initial_call=True,
-    )
+    [
+        Output("geojson-layer", "data"),
+        Output("map-points", "children"),
+        Output("selected-pois", "data"),
+        Output("transport-choice", "value"),
+        Output({"type": ALL, "index": ALL}, "checked"),
+        Output("demographics-choice", "value"),
+    ],
+    [
+        Input("apply-button", "n_clicks"),
+        Input("reset-button", "n_clicks"),
+    ],
+    [
+        State({"type": ALL, "index": ALL}, "checked"),
+        State("transport-choice", "value"),
+        State("demographics-choice", "value"),
+    ],
+    prevent_initial_call=True,
+)
     def handle_apply_or_reset(apply_clicks, reset_clicks, checked_values, transport_mode, selected_demographic):
-        # Determine which button was clicked
         ctx = dash.callback_context
         if not ctx.triggered:
-            return dash.no_update, dash.no_update, dash.no_update, dash.no_update, [dash.no_update] * len(checked_values), dash.no_update
-
+            return (dash.no_update, dash.no_update, dash.no_update, dash.no_update,
+                    [dash.no_update] * len(checked_values), dash.no_update)
+        
         triggered_id = ctx.triggered_id
 
         if triggered_id == "apply-button":
-            # Logic for Apply button
-            color_priority = ['#6a1717', '#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
+            color_priority = ['#8f0340', '#D50000', '#FFA500', '#FFFF00', '#7CB342', '#00572a']
             selected_pois = []
             map_points = []
 
-            # Loop through layers and collect selected POIs and points
+            # Debug: print checked_values
+            print("DEBUG: checked_values =", checked_values)
+
+            # Loop through all_layers to extract selected POIs and build markers
             layer_idx = 0
             for layer_group in all_layers:
                 for idx, checked in enumerate(checked_values[layer_idx:layer_idx + len(layer_group)]):
+                    print(f"DEBUG: layer_group index {idx}, checked = {checked}")
                     if checked:
                         layer = layer_group[idx]
                         selected_pois.append(layer["value"])
-
+                        print("DEBUG: Se agregó POI:", layer["value"])
                         for feature in layer["geojson"]["features"]:
                             coordinates = feature.get("geometry", {}).get("coordinates")
                             if coordinates and len(coordinates) >= 2:
@@ -1297,69 +1326,138 @@ def main():
                                         )
                                     )
                 layer_idx += len(layer_group)
+            
+            print("DEBUG: selected_pois =", selected_pois)
 
-            # Update projection features with selected colors, opacity, and demographic data
-            for feature in projected_geojson['features']:
-                feature_colors = []
-                for column in selected_pois:
-                    column_with_mode = f"{column}_{transport_mode}"
-                    color = feature['properties'].get(column_with_mode)
-                    if color in color_priority:
-                        feature_colors.append(color)
+            # -------------------------
+            # Color assignment for sections (CUSEC) based on sections_df
+            # -------------------------
+            if selected_pois:
+                columns_with_mode_sections = [f"{col}_{transport_mode}" for col in selected_pois]
+                print("DEBUG: columns_with_mode_sections =", columns_with_mode_sections)
+                try:
+                    selected_df_sections = sections_df[['CUSEC'] + columns_with_mode_sections].copy()
+                except Exception as e:
+                    print("ERROR al seleccionar columnas en sections_df:", e)
+                    selected_df_sections = sections_df[['CUSEC']].copy()
+                    selected_df_sections['color'] = '#6baed6'
+                
+                print("DEBUG: selected_df_sections.head() =\n", selected_df_sections.head())
 
-                # Assign the highest priority color
-                if feature_colors:
-                    selected_color = next((color for color in color_priority if color in feature_colors), '#676d70')
-                    feature['properties']['color'] = selected_color
-                else:
-                    feature['properties']['color'] = '#676d70'
-
-            # Update GeoJSON features with selected colors, opacity, and demographic data
-            for feature in geojson['features']:
-                feature_colors = []
-                for column in selected_pois:
-                    column_with_mode = f"{column}_{transport_mode}"
-                    color = feature['properties'].get(column_with_mode)
-                    if color in color_priority:
-                        feature_colors.append(color)
-
-                # Assign the highest priority color
-                if feature_colors:
-                    selected_color = next((color for color in color_priority if color in feature_colors), '#6baed6')
-                    feature['properties']['selectedColor'] = selected_color
-                else:
-                    feature['properties']['selectedColor'] = '#6baed6'
-
-                # Handle demographic opacity if a demographic is selected
-                if selected_demographic:
-                    opacity_column = f"{selected_demographic}"
-                    opacity = feature['properties'].get(opacity_column)
-                    if opacity is not None:
-                        feature['properties']['selectedOpacity'] = opacity
+                def get_color_sections(row):
+                    if len(selected_pois) > 1:
+                        worst_color = None
+                        worst_index = float('inf')
+                        for col in columns_with_mode_sections:
+                            color = row.get(col)
+                            if pd.notna(color) and color in color_priority:
+                                index = color_priority.index(color)
+                                if index < worst_index:
+                                    worst_index = index
+                                    worst_color = color
+                        return worst_color
                     else:
-                        feature['properties']['selectedOpacity'] = 0.4  # Default value if opacity is not found
-                else:
-                    feature['properties']['selectedOpacity'] = 0.4  # Default opacity if no demographic selected
+                        return row.get(columns_with_mode_sections[0])
 
+                
+                if selected_df_sections.empty:
+                    selected_df_sections['color'] = '#6baed6'
+                else:
+                    selected_df_sections.loc[:, 'color'] = selected_df_sections.apply(get_color_sections, axis=1)
+                
+                final_df_sections = sections_df[['CUSEC']].join(selected_df_sections['color'])
+                final_df_sections['color'] = final_df_sections['color'].fillna('#6baed6')
+                color_dict_sections = final_df_sections.set_index('CUSEC')['color'].to_dict()
+                
+                for feature in projected_geojson['features']:
+                    feature_id_sections = feature['properties']['CUSEC']
+                    feature['properties']['color'] = color_dict_sections.get(feature_id_sections, '#676d70')
+            else:
+                print("DEBUG: No se han seleccionado POIs, asignando color por defecto a sections")
+                selected_df_sections = sections_df[['CUSEC']].copy()
+                selected_df_sections['color'] = '#6baed6'
+                final_df_sections = selected_df_sections
+                color_dict_sections = final_df_sections.set_index('CUSEC')['color'].to_dict()
+                for feature in projected_geojson['features']:
+                    feature_id_sections = feature['properties']['CUSEC']
+                    feature['properties']['color'] = color_dict_sections.get(feature_id_sections, '#676d70')
+
+            print("DEBUG: final_df_sections.head() =\n", final_df_sections.head())
+            
+            # -------------------------
+            # Color assignment for buildings (Referencia) based on buildings_df
+            # -------------------------
+            column_with_mode_list = [f"{col}_{transport_mode}" for col in selected_pois]
+            if column_with_mode_list:
+                selected_df = buildings_df[column_with_mode_list].copy()
+                
+                def get_color(row):
+                    if len(selected_pois) > 1:
+                        worst_color = None
+                        worst_index = float('inf')
+                        for column in row.index:
+                            color = row[column]
+                            if pd.notna(color) and color in color_priority:
+                                index = color_priority.index(color)
+                                if index < worst_index:
+                                    worst_index = index
+                                    worst_color = color
+                        return worst_color
+                    else:
+                        return row.get(column_with_mode_list[0])
+
+                
+                selected_df.loc[:, 'color'] = selected_df.apply(get_color, axis=1)
+                final_df = buildings_df[['Referencia']].join(selected_df['color'])
+                final_df['color'] = final_df['color'].fillna('#6baed6')
+                color_dict = final_df.set_index('Referencia')['color'].to_dict()
+                print("DEBUG: final_df.head() =\n", final_df.head())
+            else:
+                color_dict = {}
+                print("DEBUG: No POIs selected for buildings; final_df not computed.")
+            
+            # Precompute a dictionary for demographic opacity from buildings_df based on CUSEC.
+            if selected_demographic:
+                # Ensure the selected_demographic column exists in buildings_df
+                demog_dict = buildings_df.set_index('CUSEC')[selected_demographic].to_dict()
+            else:
+                demog_dict = {}
+            
+            # -------------------------
+            # Update building GeoJSON features (regular geojson) with color and demographic opacity
+            # -------------------------
+            for feature in geojson['features']:
+                feature_id = feature['properties']['Referencia']
+                feature_sec = feature['properties']['CUSEC']
+                feature['properties']['selectedColor'] = color_dict.get(feature_id, '#6baed6')
+                # Update opacity based on demographic from demog_dict (matched by CUSEC)
+                if selected_demographic:
+                    opacity = demog_dict.get(feature_sec, 0.4)
+                    try:
+                        opacity = float(opacity)
+                    except (ValueError, TypeError):
+                        opacity = 0.4
+                    feature['properties']['selectedOpacity'] = opacity
+                else:
+                    feature['properties']['selectedOpacity'] = 0.4
+            
+            # Send updated sections geojson
             cityio.send_geojson(projected_geojson)
             return geojson, map_points, selected_pois, transport_mode, [dash.no_update] * len(checked_values), selected_demographic
 
         elif triggered_id == "reset-button":
-            # Reset button logic
-            default_transport_mode = "walk"  # Replace with your default value for transport mode
+            default_transport_mode = "walk"
             default_checkboxes = [False] * len(checked_values)
-            default_demographic = None  # Reset demographic choice
+            default_demographic = None
 
-            # Clear `selectedColor` and `selectedOpacity` for all features in the GeoJSON
             for feature in geojson['features']:
-                feature['properties']['selectedColor'] = None  # Or replace with a neutral default color
-                feature['properties']['selectedOpacity'] = 0.4  # Reset opacity to default
+                feature['properties']['selectedColor'] = None
+                feature['properties']['selectedOpacity'] = 0.4
 
             for feature in projected_geojson['features']:
-                feature['properties']['color'] = '#6baed6'  # Or replace with a neutral default color
+                feature['properties']['color'] = '#6baed6'
 
             cityio.send_geojson(projected_geojson)
-            # Clear map points and reset controls
             return geojson, [], [], default_transport_mode, default_checkboxes, default_demographic
 
     """
@@ -1395,6 +1493,33 @@ def main():
             return dict(center=[43.134334, -2.075681], zoom=13, transition="flyTo")
         return dash.no_update  # Fallback in case no button was clicked
     """
+
+    @app.callback(
+    Output("info-text", "children"),
+    [Input("selected-pois", "data"),
+     Input("transport-choice", "value")]
+    )
+    def update_info_text(selected_pois, transport_mode):
+        # Define mapping for transport mode labels
+        transport_labels = {
+            "walk": "walking time",
+            "bike": "biking time",
+            "pt": "public transit time",
+            "car": "driving time"
+        }
+        # Get the display label for the transport mode
+        transport_label = transport_labels.get(transport_mode, transport_mode)
+        
+        if not selected_pois:
+            return "No POIs selected"
+        
+        # Map each selected POI (value) to its label using the global layer_labels dictionary
+        poi_labels = [layer_labels.get(poi, poi) for poi in selected_pois]
+        
+        # Return the final message
+        return f"Displaying {transport_label} in minutes to: {', '.join(poi_labels)}"
+
+
 
     @app.callback(
         Output("map", "viewport"),
@@ -1436,4 +1561,3 @@ def main():
 if __name__ == "__main__":
     freeze_support()
     main()
-    
