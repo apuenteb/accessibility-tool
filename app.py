@@ -1,3 +1,5 @@
+########### BLOCK 1: LIBRARY IMPORTS ###########
+
 import dash
 from dash import html, Input, Output, ALL, callback, ctx, _dash_renderer, dcc, State
 import dash_bootstrap_components as dbc
@@ -10,9 +12,6 @@ import pandas as pd
 from multiprocessing import freeze_support
 from flask import Flask
 from flask_socketio import SocketIO, emit
-
-#Link to PM: https://cityscope.media.mit.edu/CS_cityscopeJS_projection_mapping/?cityscope=nombre_de_la_mesa
-
 from cityio import CityIo
 
 message = ''
@@ -22,12 +21,7 @@ def main():
     #cityio = CityIo(is_local=False)
     cityio.start()
 
-    # python -m venv venv
-    # On Windows: venv\Scripts\activate
-    # pip freeze > requirements.txt
-    # pip install -r requirements.txt
-
-    # load csv into pandas dataframe
+    ###### BLOCK 2: CSV IMPORTS AND APP INITIALIZATION ######
     TIME_DATA = pd.read_csv('./assets/csv_files/time_data.csv', dtype={"Referencia": str})
     buildings_df = pd.read_csv("./assets/csv_files/buildings_by_section_demog.csv", dtype=str)  # lee todas las columnas como str)
     buildings_df['Referencia'] = buildings_df['Referencia'].astype(str)
@@ -40,6 +34,9 @@ def main():
     server = Flask(__name__)
     app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
     socketio = SocketIO(server)
+    _dash_renderer._set_react_version("18.2.0")
+
+    ###### BLOCK 3: JAVASCRIPT FUNCTIONS ######
 
     def get_info(feature=None, selected_pois=None, transport_mode=None, time_data=TIME_DATA):
         # Default header when no feature is hovered
@@ -101,117 +98,7 @@ def main():
             ),
             html.Div(f"Referencia: {ref}", style={"margin": "0", "padding": "0"}),
         ]
-
-    # Arduino websocket functions
-    @socketio.on('connect', namespace='/test')
-    def handle_connect():
-        print('Client connected')
-
-    @socketio.on('disconnect', namespace='/test')
-    def handle_disconnect():
-        print('Client disconnected')
-
-    @socketio.on('message', namespace='/test')
-    def handle_message(mess):
-        global message
-        message = mess
-        print(f'Received message: {message}')
-        socketio.emit('update', '', namespace='/test')
-
-
-    @app.callback(
-        [Output('donostia-button', 'n_clicks')],
-        [Input('interval', 'n_intervals')]
-    )
-    def click_button(n_intervals):
-        global message
-        if len(message) > 0 and message == 'donostia':
-            print('sending click request')
-            message = ''
-            return [1]
-        else:
-            return [0]  # return current state when message is empty
-
-    @app.callback(
-        [Output('debab-button', 'n_clicks')],
-        [Input('interval', 'n_intervals')]
-    )
-    def click_button(n_intervals):
-        global message
-        if len(message) > 0 and message == 'debab':
-            print('sending click request')
-            message = ''
-            return [1]
-        else:
-            return [0]  # return current state when message is empty
-
-    @app.callback(
-        [Output('debag-button', 'n_clicks')],
-        [Input('interval', 'n_intervals')]
-    )
-    def click_button(n_intervals):
-        global message
-        if len(message) > 0 and message == 'debag':
-            print('sending click request')
-            message = ''
-            return [1]
-        else:
-            return [0]  # return current state when message is empty
-
-    @app.callback(
-        [Output('bidasoa-button', 'n_clicks')],
-        [Input('interval', 'n_intervals')]
-    )
-    def click_button(n_intervals):
-        global message
-        if len(message) > 0 and message == 'bidasoa':
-            print('sending click request')
-            message = ''
-            return [1]
-        else:
-            return [0]  # return current state when message is empty
-
-    @app.callback(
-        [Output('goierri-button', 'n_clicks')],
-        [Input('interval', 'n_intervals')]
-    )
-    def click_button(n_intervals):
-        global message
-        if len(message) > 0 and message == 'goierri':
-            print('sending click request')
-            message = ''
-            return [1]
-        else:
-            return [0]  # return current state when message is empty
-
-    @app.callback(
-        [Output('urolak-button', 'n_clicks')],
-        [Input('interval', 'n_intervals')]
-    )
-    def click_button(n_intervals):
-        global message
-        if len(message) > 0 and message == 'urolak':
-            print('sending click request')
-            message = ''
-            return [1]
-        else:
-            return [0]  # return current state when message is empty
-
-    @app.callback(
-        [Output('tolosa-button', 'n_clicks')],
-        [Input('interval', 'n_intervals')]
-    )
-    def click_button(n_intervals):
-        global message
-        if len(message) > 0 and message == 'tolosa':
-            print('sending click request')
-            message = ''
-            return [1]
-        else:
-            return [0]  # return current state when message is empty
-
-    #################################################################################
-
+    
     # Create info control.
     info = html.Div(
         children=get_info(),
@@ -281,13 +168,14 @@ def main():
     # Dash app (initialize like here always, if not the dmc components don't work, we need to make sure the React version is 18.2.0)
     # React 18 Issue: Dash Mantine Components is based on REACT 18. You must set the env variable REACT_VERSION=18.2.0 before starting up the app.
     # https://www.dash-mantine-components.com/getting-started#:~:text=React%2018%20Issue,up%20the%20app.
-    _dash_renderer._set_react_version("18.2.0")
+    # _dash_renderer._set_react_version("18.2.0")
     #app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
     #server = app.server
     #server = Flask(__name__)
     #app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP, dmc.styles.ALL])
     #socketio = SocketIO(server)
 
+    ######## BLOCK 4: VARIABLES AND FILE INITIALIZATION ########
     # Custom icon (using local assets)
     custom_icon = dict(
         iconUrl='/assets/icons/icon_blue1.png',  # Local icon
@@ -710,6 +598,8 @@ def main():
             # Ensure the layer contains the 'value' and 'label' keys
             if "value" in layer and "label" in layer:
                 layer_labels[layer["value"]] = layer["label"]
+
+    ########## BLOCK 5: COMPONENTS ########
 
     poi_menu = html.Div(
         dbc.Accordion(
@@ -1163,6 +1053,8 @@ def main():
         ]
     )
 
+    ######### BLOCK 6: DASH APP LAYOUT #########
+
     # Layout
     app.layout = dmc.MantineProvider(
     html.Div(
@@ -1251,7 +1143,7 @@ def main():
     )
     )
 
-
+    ############# BLOCK 7: CALLBACKS #############
     # Update the callback to display the hovered feature's information, including CUSEC
     @callback(
         Output("info", "children"),  # Update the info display
@@ -1519,8 +1411,6 @@ def main():
         # Return the final message
         return f"Displaying {transport_label} in minutes to: {', '.join(poi_labels)}"
 
-
-
     @app.callback(
         Output("map", "viewport"),
         [
@@ -1554,7 +1444,117 @@ def main():
             elif i_comarcas['prop_id'] == 'tolosa-button.n_clicks' and i_comarcas['value'] == 1:
                 return dict(center=[43.134334, -2.075681], zoom=13, transition="flyTo")
         return dash.no_update  # Fallback in case no button was clicked
+    
+    
+    # Arduino websocket functions
+    @socketio.on('connect', namespace='/test')
+    def handle_connect():
+        print('Client connected')
 
+    @socketio.on('disconnect', namespace='/test')
+    def handle_disconnect():
+        print('Client disconnected')
+
+    @socketio.on('message', namespace='/test')
+    def handle_message(mess):
+        global message
+        message = mess
+        print(f'Received message: {message}')
+        socketio.emit('update', '', namespace='/test')
+
+
+    @app.callback(
+        [Output('donostia-button', 'n_clicks')],
+        [Input('interval', 'n_intervals')]
+    )
+    def click_button(n_intervals):
+        global message
+        if len(message) > 0 and message == 'donostia':
+            print('sending click request')
+            message = ''
+            return [1]
+        else:
+            return [0]  # return current state when message is empty
+
+    @app.callback(
+        [Output('debab-button', 'n_clicks')],
+        [Input('interval', 'n_intervals')]
+    )
+    def click_button(n_intervals):
+        global message
+        if len(message) > 0 and message == 'debab':
+            print('sending click request')
+            message = ''
+            return [1]
+        else:
+            return [0]  # return current state when message is empty
+
+    @app.callback(
+        [Output('debag-button', 'n_clicks')],
+        [Input('interval', 'n_intervals')]
+    )
+    def click_button(n_intervals):
+        global message
+        if len(message) > 0 and message == 'debag':
+            print('sending click request')
+            message = ''
+            return [1]
+        else:
+            return [0]  # return current state when message is empty
+
+    @app.callback(
+        [Output('bidasoa-button', 'n_clicks')],
+        [Input('interval', 'n_intervals')]
+    )
+    def click_button(n_intervals):
+        global message
+        if len(message) > 0 and message == 'bidasoa':
+            print('sending click request')
+            message = ''
+            return [1]
+        else:
+            return [0]  # return current state when message is empty
+
+    @app.callback(
+        [Output('goierri-button', 'n_clicks')],
+        [Input('interval', 'n_intervals')]
+    )
+    def click_button(n_intervals):
+        global message
+        if len(message) > 0 and message == 'goierri':
+            print('sending click request')
+            message = ''
+            return [1]
+        else:
+            return [0]  # return current state when message is empty
+
+    @app.callback(
+        [Output('urolak-button', 'n_clicks')],
+        [Input('interval', 'n_intervals')]
+    )
+    def click_button(n_intervals):
+        global message
+        if len(message) > 0 and message == 'urolak':
+            print('sending click request')
+            message = ''
+            return [1]
+        else:
+            return [0]  # return current state when message is empty
+
+    @app.callback(
+        [Output('tolosa-button', 'n_clicks')],
+        [Input('interval', 'n_intervals')]
+    )
+    def click_button(n_intervals):
+        global message
+        if len(message) > 0 and message == 'tolosa':
+            print('sending click request')
+            message = ''
+            return [1]
+        else:
+            return [0]  # return current state when message is empty
+
+    ##### BLOCK 8: RUN SERVER #####
 
     app.run_server(debug=False)
 
