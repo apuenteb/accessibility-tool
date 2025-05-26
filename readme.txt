@@ -4,9 +4,9 @@ Steps:
 1. Clone repo (open terminal and run: git clone https://github.com/apuenteb/accessibility-tool.git)
    If you het an LST error you can ignore it
    You need to manually download large files from drive folders provided in ReadMe files for:
-   assets>geojsons
-   assets>csv_files
-   preprocessing>donwload and create networks>public transit>networks
+   'assets>geojsons'
+   'assets>csv_files'
+   'preprocessing>donwload and create networks>public transit>networks'
 2. To create myvenv with Python 3.12 run in terminal: python3.12 -m venv myenv
 3. To activate myvenv:
    On Windows, run: myvenv\Scripts\activate
