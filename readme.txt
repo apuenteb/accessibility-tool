@@ -8,10 +8,12 @@ Steps:
    'assets>csv_files'
    'preprocessing>donwload and create networks>public transit>networks'
 2. To create myvenv with Python 3.12 run in terminal: python3.12 -m venv myenv
+   If you're using conda: conda create -n accessibility python=3.12
 3. To activate myvenv:
    On Windows, run: myvenv\Scripts\activate
    On macOS, run: source myvenv/bin/activate
-4. To install the required packages, run: pip install -r requirements.txt
+   If you're using conda: conda activate accessibility
+4. To install the required packages, cd to the right directory and run: pip install -r requirements.txt
    4.1 you might need to re-install manually pyserial:
        pip uninstall pyserial
        pip install pyserial==3.5 
